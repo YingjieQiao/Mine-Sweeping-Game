@@ -44,7 +44,28 @@ class MineSweep(App):
         scrm.add_widget(customize)
         scrm.current = "menu"
         return scrm
-    
+
+
+class Grid():
+    def __init__(self):
+        self.isMine = 0
+        # self.isVisible = False
+        self.neighbors = 0
+        self.location = None
+        self.button = Button(size=(gridSize, gridSize))
+        # size is the global variable defined at the beginning of each gamemode
+        self.button.bind(on_touch_down=self.onPressed)
+
+
+    def onPressed(self, instance, touch):
+        if touch.button == "left":
+            print("left click")
+        elif touch.button == "right":
+            print("right click")
+            # self.color = (225,225,126,1)
+            # difference between background color and color attr
+            # why it fixed the white at top right color bug
+'''
 class MyButton(Button,EventDispatcher):
     isMine = NumericProperty(0)
     def __init__(self, **kwargs):
@@ -60,7 +81,7 @@ class MyButton(Button,EventDispatcher):
             self.color = (225,225,126,1)
             # difference between background color and color attr
             # why it fixed the white at top right color bug
-
+'''
     
 
 class Menu(Screen,GridLayout):
@@ -150,7 +171,7 @@ class GameMode(Screen,GridLayout):
         self.manager.current = "customize"
 
 
-class Easy(Screen,FloatLayout,App):
+class Easy(Screen,FloatLayout):
     def __init__(self, **kwargs):
         Screen.__init__(self, **kwargs)
         FloatLayout.__init__(self, **kwargs)
