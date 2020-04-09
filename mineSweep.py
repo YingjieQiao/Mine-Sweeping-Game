@@ -5,11 +5,13 @@ from kivy.uix.textinput import TextInput #name for scoreboard
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.button import Button 
+from kivy.uix.button import Button
+from kivy.uix.button import ButtonBehavior
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.lang import Builder
 from kivy.core.window import Window 
 from kivy.properties import NumericProperty
+from kivy.properties import ListProperty
 from kivy.event import EventDispatcher
 from random import randint
 
@@ -20,7 +22,7 @@ from random import randint
 
 class MineSweep(App):
     def build(self):
-        sm = ScreenManager()
+        scrm = ScreenManager()
         
         menu = Menu(name="menu")
         options = Options(name="options")
@@ -30,22 +32,32 @@ class MineSweep(App):
         hard = Hard(name="hard")
         customize = Customize(name="customize")
         
-        sm.add_widget(menu)
-        sm.add_widget(options)
-        sm.add_widget(gamemode)
-        sm.add_widget(easy)
-        sm.add_widget(medium)
-        sm.add_widget(hard)
-        sm.add_widget(customize)
-        sm.current = "menu"
-        return sm
+        scrm.add_widget(menu)
+        scrm.add_widget(options)
+        scrm.add_widget(gamemode)
+        scrm.add_widget(easy)
+        scrm.add_widget(medium)
+        scrm.add_widget(hard)
+        scrm.add_widget(customize)
+        scrm.current = "menu"
+        return scrm
     
 class MyButton(Button,EventDispatcher):
     isMine = NumericProperty(0)
     def __init__(self, **kwargs):
-        #super(MyButton,self).__init__(**kwargs)
         Button.__init__(self,**kwargs)
-        
+        #self.isMine = 0
+        self.bind(on_touch_down=self.onPressed)
+
+    def onPressed(self, instance, touch):
+        if touch.button == "left":
+            print("left click")
+        elif touch.button == "right":
+            print("right click")
+            self.color = (225,225,126,1)
+            # difference between background color and color attr
+            # why it fixed the white at top right color bug
+
     
 
 class Menu(Screen,GridLayout):
@@ -135,7 +147,7 @@ class GameMode(Screen,GridLayout):
         self.manager.current = "customize"
 
 
-class Easy(Screen,FloatLayout):
+class Easy(Screen,FloatLayout,App):
     def __init__(self, **kwargs):
         Screen.__init__(self, **kwargs)
         FloatLayout.__init__(self, **kwargs)
@@ -151,25 +163,17 @@ class Easy(Screen,FloatLayout):
             for y in range(10):
                 ifMine = randint(0,1)
                 if ifMine and mineTotal < mines:
-                    self.btn = MyButton(isMine=1,size_hint=(10/300,10/300),pos=(x*30,y*30))
+                    self.btn = MyButton(isMine=1,size_hint=(10/300,10/300),pos=(100+x*30,100+y*30))
                     self.layout.add_widget(self.btn)
                     mineTotal += 1
                     coordinates[(x*30,y*30)] = 1
-                    #print(self.btn.isMine)
                 else:
-                    self.btn = MyButton(isMine=0,size_hint=(10/300,10/300),pos=(x*30,y*30))
+                    self.btn = MyButton(isMine=0,size_hint=(10/300,10/300),pos=(100+x*30,100+y*30))
                     self.layout.add_widget(self.btn)
                     coordinates[(x*30,y*30)] = 0
-                    #print(self.btn.isMine)
         self.add_widget(self.layout)
         
-    def on_touch_up(self, touch):
-        if self.collide_point(*touch.pos):
-            if Clock.get_time() - touch.time_start > TOUCH_HOLD_THRESHOLD:
-                self.toggle_guess_bomb()
-            else:
-                self.reveal_square()
-            return True
+
         
         
 
@@ -194,6 +198,4 @@ class Customize(Screen,GridLayout):
 if __name__ =='__main__':
     MineSweep().run()
 
-    
-    
     
