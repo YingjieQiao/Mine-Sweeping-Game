@@ -71,6 +71,7 @@ class TestApp(App):
 def init_grid():
   global grid
   grid = [[Cell() for x in range(width)] for y in range(height)]
+
   for _ in range(bombs):
     while True:
       x = randint(0, height - 1)
