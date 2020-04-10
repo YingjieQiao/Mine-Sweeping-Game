@@ -45,7 +45,7 @@ class MineSweep(App):
         scrm.current = "menu"
         return scrm
 
-
+'''
 class Grid():
     def __init__(self):
         self.isMine = 0
@@ -74,14 +74,26 @@ class MyButton(Button,EventDispatcher):
         self.bind(on_touch_down=self.onPressed)
 
     def onPressed(self, instance, touch):
-        if touch.button == "left":
-            print("left click")
-        elif touch.button == "right":
-            print("right click")
-            self.color = (225,225,126,1)
-            # difference between background color and color attr
-            # why it fixed the white at top right color bug
-'''
+        if self.collide_point(*touch.pos):
+            if touch.button == "left":
+                print("left click")
+            elif touch.button == "right":
+                print("right click")
+                # self.color = (225,225,126,1)
+                # difference between background color and color attr
+                # why it fixed the white at top right color bug
+    '''    
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            if touch.button == "right":
+                print(self.id, "right mouse clicked")
+            elif touch.button == "left":
+                print(self.id, "left mouse clicked")
+            else:
+                print(self.id)
+            return True
+    '''
+
     
 
 class Menu(Screen,GridLayout):
@@ -171,12 +183,12 @@ class GameMode(Screen,GridLayout):
         self.manager.current = "customize"
 
 
-class Easy(Screen,FloatLayout):
+class Easy(Screen,GridLayout):
     def __init__(self, **kwargs):
         Screen.__init__(self, **kwargs)
-        FloatLayout.__init__(self, **kwargs)
+        GridLayout.__init__(self, **kwargs)
         
-        self.layout = FloatLayout(size=(300, 300))
+        self.layout = GridLayout(cols=10, rows=10)
         coordinates = {}
         mines = 10
         mineTotal = 0
@@ -187,12 +199,12 @@ class Easy(Screen,FloatLayout):
             for y in range(10):
                 ifMine = randint(0,1)
                 if ifMine and mineTotal < mines:
-                    self.btn = MyButton(isMine=1,size_hint=(10/300,10/300),pos=(100+x*30,100+y*30))
+                    self.btn = MyButton(isMine=1)
                     self.layout.add_widget(self.btn)
                     mineTotal += 1
                     coordinates[(x*30,y*30)] = 1
                 else:
-                    self.btn = MyButton(isMine=0,size_hint=(10/300,10/300),pos=(100+x*30,100+y*30))
+                    self.btn = MyButton(isMine=0)
                     self.layout.add_widget(self.btn)
                     coordinates[(x*30,y*30)] = 0
         self.add_widget(self.layout)

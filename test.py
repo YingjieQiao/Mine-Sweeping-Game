@@ -1,40 +1,40 @@
-# test.py
 from kivy.app import App
-from kivy.interactive import InteractiveLauncher
-from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.gridlayout import GridLayout
 from kivy.uix.button import Button
-from kivy.properties import ObjectProperty
-from kivy.core.window import Window
-from kivy.config import Config
 
-Red = [1, 0, 0, 1]
-Normal = [1, 1, 1, 1]
-Blue = [0, 0, 1, 1]
-class TestApp(App):
-    def build (self):
-        return Gui()
-class MyButton (Button):
-    def __init__(self):
-        super(MyButton, self).__init__()
+
+class CreateButton(Button):
+
     def on_touch_down(self, touch):
-        if touch.button == 'left':
-            if self.background_color == Red:
-                self.background_color = Normal
+        if self.collide_point(*touch.pos):
+            if touch.button == "right":
+                print(self.id, "right mouse clicked")
+            elif touch.button == "left":
+                print(self.id, "left mouse clicked")
             else:
-                self.background_color = Red
-        elif touch.button == 'right':
-            if self.background_color == Blue:
-                self.background_color = Normal
-            else:
-                self.background_color = Blue
-class Gui(BoxLayout):
-    grid = ObjectProperty(None)
-    def __init__(self, ** kwargs):
-        super ().__init__(** kwargs)
-        for i in range(5):
-            for j in range(5):
-                self.grid.add_widget(MyButton())
+                print(self.id)
+            return True
+        return super(CreateButton, self).on_touch_down(touch)
+
+
+class OnTouchDownDemo(GridLayout):
+
+    def __init__(self, **kwargs):
+        super(OnTouchDownDemo, self).__init__(**kwargs)
+        self.build_board()
+
+    def build_board(self):
+        # make 9 buttons in a grid
+        for i in range(0, 9):
+            button = CreateButton(id=str(i))
+            self.add_widget(button)
+
+
+class OnTouchDownApp(App):
+
+    def build(self):
+        return OnTouchDownDemo()
+
+
 if __name__ == '__main__':
-    #Config.set('input', 'mouse', 'mouse, disable_multitouch')
-    Window.size = (1500, 1000)
-    TestApp().Run()
+    OnTouchDownApp().run()
