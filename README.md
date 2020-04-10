@@ -28,4 +28,9 @@ create a method class contain all the `change to xxx` functions, etc (don't repe
 
 ### ref
 
-adding new attr: https://subscription.packtpub.com/book/application_development/9781783987382/1/ch01lvl1sec12/declaring-properties-within-a-class (thanks to open source community omg)
+adding new attr: https://subscription.packtpub.com/book/application_development/9781783987382/1/ch01lvl1sec12/declaring-properties-within-a-class 
+
+clicking problem that takes me 2 days: https://stackoverflow.com/questions/45934429/bind-a-function-to-multiple-dynamically-created-buttons-in-kivy
+
+(thanks to open source community omg)
+(when u run into a problem, GOOGLE first)

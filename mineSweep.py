@@ -62,10 +62,24 @@ def init_grid(width, height, mines):
             grid_field[j][i].build(j, i)
 
 
+def reveal_zeros(gridObj):
+    # gridObj is already confirmed to be 0 -- no mines in its surrounding
+    for i in range(-1, 2):
+        for j in range(-1, 2):
+            if (0 <= gridObj.location[0] + i < width) and (0 <= gridObj.location[1] + j < height):
+                check = grid_field[gridObj.location[0] + i][gridObj.location[1] + j]
+                if check.isClicked == 0 and check.neighbors == 0:
+                    check.button.text = str(check.neighbors)
+                    check.isClicked = 1
+                    if check not in neighbor_grids:
+                        neighbor_grids.append(check)
+                    #neighbor_grids.remove(gridObj)
+                    # why this one gives ValueError: list.remove(x): x not in list???
+
 class Grid():
     def __init__(self):
         self.isMine = 0
-        self.isVisible = 0
+        self.isClicked = 0
         self.isFlagged = 0
         self.neighbors = 0
         self.location = [] # (height_index, width_index)
@@ -78,38 +92,39 @@ class Grid():
         self.count_neighbors()
 
     def onPressed(self, instance, touch):
-        if touch.button == "left":
-            print(self.location)
-            if self.isMine == 0:
-                #self.isVisible = 1
-                #self.button.text = str(self.neighbors)
-                if self.neighbors == 0:
-                    pass
-                    '''
-                    for i in range(-1, 2):
-                        for j in range(-1, 2):
-                            if (0 <= self.location[0] + i < width) and (0 <= self.location[1] + j < height):
-                                check = grid_field[self.location[0] + i][self.location[1] + j]
-                                if check.neighbors == 0 and check.isVisible == 0:
-                                    grid_field[self.location[0] + i][self.location[1] + j].onPressed(instance, touch)
-                    '''
-                else:
+        if self.button.collide_point(*touch.pos):
+            if touch.button == "left":
+                self.isClicked = 1
+                if self.isMine == 0:
                     self.button.text = str(self.neighbors)
-            else:
-                # self.isVisible = 1
-                self.button.text = "!"
-        elif touch.button == "right":
-            if self.isFlagged == 0:
-                self.isFlagged = 1
-                self.button.text = "*"
-                # color change
-            elif self.isFlagged == 1:
-                self.isFlagged = 0
-                self.button.text = " "
-                # color change
-            # self.color = (225,225,126,1)
-            # difference between background color and color attr
-            # why it fixed the white at top right color bug
+                    if self.neighbors == 0:
+                        global neighbor_grids
+
+                        neighbor_grids = []
+                        neighbor_grids.append(self)
+                        while len(neighbor_grids) > 0:
+                            reveal_zeros(neighbor_grids[0])
+                            neighbor_grids.remove(neighbor_grids[0])
+
+                    else:
+                        self.button.text = str(self.neighbors)
+                else:
+                    self.button.text = "!"
+            elif touch.button == "right":
+                if self.isFlagged == 0:
+                    self.isFlagged = 1
+                    self.button.text = "*"
+                    # color change
+                elif self.isFlagged == 1:
+                    self.isFlagged = 0
+                    self.button.text = " "
+                    # color change
+                # self.color = (225,225,126,1)
+                # difference between background color and color attr
+                # why it fixed the white at top right color bug
+
+
+
 
     def count_neighbors(self):
         if self.isMine == 0:
@@ -232,42 +247,6 @@ class GameMode(Screen,GridLayout):
     def change_to_customize(self, value):
         self.manager.transition.direction = "down"
         self.manager.current = "customize"
-
-'''
-class Easy(Screen,GridLayout,AnchorLayout,RelativeLayout):
-    def __init__(self, **kwargs):
-        Screen.__init__(self, **kwargs)
-        GridLayout.__init__(self, **kwargs)
-        AnchorLayout.__init__(self, **kwargs)
-        RelativeLayout.__init__(self, **kwargs)
-        ## !!!what's the difference between super() and Class,__init__()
-
-        global width, height, mines, gridSize
-        width = 10
-        height = 10
-        mines = 5
-        gridSize = 60
-        init_grid(width, height, mines)
-
-        #self.layout = GridLayout(cols=10, rows=10)
-        #self.root = AnchorLayout(anchor_x = 'center', anchor_y = 'center')
-        self.grid_root = RelativeLayout(size = (width * gridSize, height * gridSize), size_hint = (None, None))
-
-
-
-        
-        # TODO
-        # position and sizes to be modified to create a better UI
-        layout = []
-        for j in range(height):
-            layout.append(
-                BoxLayout(orientation='horizontal', size_hint=(.8, .8), pos=(0, (height - 1) * gridSize - j * gridSize)))
-            for i in range(width):
-                layout[j].add_widget(grid_field[j][i].button)
-            self.grid_root.add_widget(layout[j])
-        #self.root.add_widget(self.grid_root)
-        self.add_widget(self.grid_root)
-'''
 
 class Easy(Screen, GridLayout):
     # init_grid(width, height, mines)
