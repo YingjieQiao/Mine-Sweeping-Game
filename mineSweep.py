@@ -43,17 +43,17 @@ def init_grid(width, height, mines):
 
     '''
     grid_field[y][x]
-    y is the row index, which adds up to HEIGHT
-    x is the column index, which adds up to WIDTH
+    j is the row index, which adds up to HEIGHT
+    i is the column index, which adds up to WIDTH
     '''
 
     # generate mines
     mineCount = 0
     while mineCount < mines:
-        x = randint(0, height-1)
-        y = randint(0, width-1)
-        if grid_field[x][y].isMine == 0:
-            grid_field[x][y].isMine = 1
+        i = randint(0, height-1)
+        j = randint(0, width-1)
+        if grid_field[j][i].isMine == 0:
+            grid_field[j][i].isMine = 1
             mineCount += 1
 
     # fill mines into the grid field
@@ -65,24 +65,61 @@ def init_grid(width, height, mines):
 class Grid():
     def __init__(self):
         self.isMine = 0
-        # self.isVisible = False
+        self.isVisible = 0
+        self.isFlagged = 0
         self.neighbors = 0
-        self.location = []
+        self.location = [] # (height_index, width_index)
         self.button = Button(size=(gridSize, gridSize))
-        # size is the global variable defined at the beginning of each gamemode
+        # gridSize is the global variable defined at the beginning of each gamemode
         self.button.bind(on_touch_down=self.onPressed)
 
     def build(self, x, y):
         self.location = [x, y]
+        self.count_neighbors()
 
     def onPressed(self, instance, touch):
         if touch.button == "left":
-            print("left click")
+            print(self.location)
+            if self.isMine == 0:
+                #self.isVisible = 1
+                #self.button.text = str(self.neighbors)
+                if self.neighbors == 0:
+                    pass
+                    '''
+                    for i in range(-1, 2):
+                        for j in range(-1, 2):
+                            if (0 <= self.location[0] + i < width) and (0 <= self.location[1] + j < height):
+                                check = grid_field[self.location[0] + i][self.location[1] + j]
+                                if check.neighbors == 0 and check.isVisible == 0:
+                                    grid_field[self.location[0] + i][self.location[1] + j].onPressed(instance, touch)
+                    '''
+                else:
+                    self.button.text = str(self.neighbors)
+            else:
+                # self.isVisible = 1
+                self.button.text = "!"
         elif touch.button == "right":
-            print("right click")
+            if self.isFlagged == 0:
+                self.isFlagged = 1
+                self.button.text = "*"
+                # color change
+            elif self.isFlagged == 1:
+                self.isFlagged = 0
+                self.button.text = " "
+                # color change
             # self.color = (225,225,126,1)
             # difference between background color and color attr
             # why it fixed the white at top right color bug
+
+    def count_neighbors(self):
+        if self.isMine == 0:
+            count = 0
+            for i in range(-1, 2):
+                for j in range(-1, 2):
+                    if (0 <= self.location[0] + i < width) and (0 <= self.location[1] + j < height):
+                        if grid_field[self.location[0] + i][self.location[1] + j].isMine == 1:
+                            count += 1
+            self.neighbors = count
 
 
 
@@ -159,7 +196,7 @@ class GameMode(Screen,GridLayout):
     def __init__(self, **kwargs):
         Screen.__init__(self, **kwargs)
         GridLayout.__init__(self, **kwargs)
-                
+
         self.layout = GridLayout(cols=1)
         self.gamemode_label = Label(text="Select Difficulty")
         self.easy_button = Button(text="Easy", on_press=self.change_to_easy)
@@ -197,73 +234,62 @@ class GameMode(Screen,GridLayout):
         self.manager.current = "customize"
 
 '''
-class Easy(Screen, App):
+class Easy(Screen,GridLayout,AnchorLayout,RelativeLayout):
     def __init__(self, **kwargs):
+        Screen.__init__(self, **kwargs)
+        GridLayout.__init__(self, **kwargs)
+        AnchorLayout.__init__(self, **kwargs)
+        RelativeLayout.__init__(self, **kwargs)
+        ## !!!what's the difference between super() and Class,__init__()
+
         global width, height, mines, gridSize
         width = 10
         height = 10
         mines = 5
         gridSize = 60
-
-        Screen.__init__(self, **kwargs)
-        #AnchorLayout.__init__(self, **kwargs)
-        #RelativeLayout.__init__(self, **kwargs)
-        #BoxLayout.__init__(self, **kwargs)
-
         init_grid(width, height, mines)
 
-        root = AnchorLayout(anchor_x = 'center', anchor_y = 'center')
-        grid_field_root = RelativeLayout(size=(width*size, height*size), size_hint=(None, None))
-        layout_matrix = []
+        #self.layout = GridLayout(cols=10, rows=10)
+        #self.root = AnchorLayout(anchor_x = 'center', anchor_y = 'center')
+        self.grid_root = RelativeLayout(size = (width * gridSize, height * gridSize), size_hint = (None, None))
 
-        for i in range(height):
-            layout_matrix.append(BoxLayout(orientation='horizontal', size_hint = (.8, .8), pos = (0, (height - 1) * size - i * size)))
-            for j in range(width):
-                layout_matrix[i].add_widget(gird_field[j][i].button)
-                #print(gird_field[j][i].button.isMine)
-            grid_field_root.add_widget(layout_matrix[i])
-        root.add_widget(grid_field_root)
-        self.add_widget(root)
-        #return self.root
 
-    
-    def build(self):
-        root = AnchorLayout(anchor_x = 'center', anchor_y = 'center')
-        grid_root = RelativeLayout(size = (width * size, height * size), size_hint = (None, None))
+
+        
+        # TODO
+        # position and sizes to be modified to create a better UI
         layout = []
-        for i in range(height):
-          layout.append(BoxLayout(orientation='horizontal', size_hint = (.8, .8), pos = (0, (height - 1) * size - i * size)))
-          for j in range(width):
-            layout[i].add_widget(grid[j][i].button)
-          grid_root.add_widget(layout[i])
-        root.add_widget(grid_root)
-        return root
+        for j in range(height):
+            layout.append(
+                BoxLayout(orientation='horizontal', size_hint=(.8, .8), pos=(0, (height - 1) * gridSize - j * gridSize)))
+            for i in range(width):
+                layout[j].add_widget(grid_field[j][i].button)
+            self.grid_root.add_widget(layout[j])
+        #self.root.add_widget(self.grid_root)
+        self.add_widget(self.grid_root)
 '''
 
-
-class Easy(Screen,GridLayout):
-    #init_grid(width, height, mines)
+class Easy(Screen, GridLayout):
+    # init_grid(width, height, mines)
     def __init__(self, **kwargs):
         Screen.__init__(self, **kwargs)
         GridLayout.__init__(self, **kwargs)
-        
+
         self.layout = GridLayout(cols=10, rows=10)
 
         global width, height, mines, gridSize
         width = 10
         height = 10
-        mines = 5
+        mines = 10 # to few mines will result in exceeding of maximum recursion !!!!!!!!!!!!
         gridSize = 60
         init_grid(width, height, mines)
-        
+
         # TODO
         # position and sizes to be modified to create a better UI
         for eachRow in grid_field:
             for each in eachRow:
                 self.layout.add_widget(each.button)
         self.add_widget(self.layout)
-
-
 
 class Medium(Screen,GridLayout):
     def __init__(self, **kwargs):

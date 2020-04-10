@@ -31,14 +31,15 @@ class Cell():
 
   def onPressed(self, instance, touch):
     if touch.button == 'left':
-        self.isVisible = True
-        self.button.text = str(self.neighbors)
-        if self.neighbors == 0:
-          for i in range(-1, 2):
-            for j in range(-1, 2):
-              if (0 <= self.location[0] + i < width) and (0 <= self.location[1] + j < height):
-                if grid[self.location[0] + i][self.location[1] + j].isVisible == False:
-                  grid[self.location[0] + i][self.location[1] + j].onPressed(instance, touch)
+      print(self.location)
+      self.isVisible = True
+      self.button.text = str(self.neighbors)
+      if self.neighbors == 0:
+        for i in range(-1, 2):
+          for j in range(-1, 2):
+            if (0 <= self.location[0] + i < width) and (0 <= self.location[1] + j < height):
+              if grid[self.location[0] + i][self.location[1] + j].isVisible == False:
+                grid[self.location[0] + i][self.location[1] + j].onPressed(instance, touch)
     #if right_click == True:
       #Toggle state
 
