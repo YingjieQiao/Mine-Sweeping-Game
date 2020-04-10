@@ -9,21 +9,18 @@ ok i know kinda want to do a shooting range one
 
 ### TODO
 
-1. UI:
-
 Framework done. To polish up after everything (this is important. you dont want the prof say you just copy starter code for your UI)
 
-2. Minesweep:
+"Easy" expansion algo done. Do for "Medium" and "Hard" first. Do "Customize" last.
 
-positions of boxes. **the space expansion algo, how many left around each mine**
+smaller gird board to give space for 1) timer 2) the happy smiling face?? 3) number of mines left
 
 quit to menu in the middle
 
-3. sm, reorg code:
 
-figure out how to incorporate sm class into it
+figure out how to incorporate sm class into it (very important, bonus mark)
 
-create a method class contain all the `change to xxx` functions, etc (don't repeat code)
+create a method class contain all the `change to xxx` functions, etc (don't repeat code) (try to do it)
 
 
 ### ref
@@ -33,4 +30,5 @@ adding new attr: https://subscription.packtpub.com/book/application_development/
 clicking problem that takes me 2 days: https://stackoverflow.com/questions/45934429/bind-a-function-to-multiple-dynamically-created-buttons-in-kivy
 
 (thanks to open source community omg)
+
 (when u run into a problem, GOOGLE first)
