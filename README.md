@@ -29,6 +29,8 @@ adding new attr: https://subscription.packtpub.com/book/application_development/
 
 clicking problem that takes me 2 days: https://stackoverflow.com/questions/45934429/bind-a-function-to-multiple-dynamically-created-buttons-in-kivy
 
+screen switch by calling it outside the class: https://stackoverflow.com/questions/61211225/switching-screens-using-kivy-attributeerror-nonetype-object-has-no-attribute/61213984?noredirect=1#comment108308582_61213984
+
 (thanks to open source community omg)
 
 (when u run into a problem, GOOGLE first)
