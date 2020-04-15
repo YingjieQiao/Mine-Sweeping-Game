@@ -17,6 +17,7 @@ smaller gird board to give space for 1) timer 2) the happy smiling face?? 3) num
 
 quit to menu in the middle
 
+**Work out scoring system and scoreborad with local file saved and "one more game machanism**
 
 figure out how to incorporate sm class into it (very important, bonus mark)
 
@@ -28,10 +29,13 @@ create a method class contain all the `change to xxx` functions, etc (don't repe
 
 ### Note
 
-You shouldn't use one `grid_field` global variable to store all the grids, because you excecute `init_grid` three times,
+1. You shouldn't use one `grid_field` global variable to store all the grids, because you excecute `init_grid` three times,
 all of which give the result list to `grid_field`, so in the end, only the last list (the one for hard mode) is stored 
 and thus there is no reaction when you click on the UI of easy or medium. 
 
+2. `prototype2.py` is the current working version. `test3` is for compling game screen experiment: Can I create a new `Screen` widget in the middle of the code?
+
+3. or maybe I can make the whole thing into a state machine. input is "easy", "medium", "hard". But I still need to figure out how to add in screen in the middle
 ### ref
 
 adding new attr: https://subscription.packtpub.com/book/application_development/9781783987382/1/ch01lvl1sec12/declaring-properties-within-a-class 
