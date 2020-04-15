@@ -22,6 +22,15 @@ figure out how to incorporate sm class into it (very important, bonus mark)
 
 create a method class contain all the `change to xxx` functions, etc (don't repeat code) (try to do it)
 
+# Important
+
+### Compile three difficulty level into one. Writing 3 individually is not impressive enough
+
+### Note
+
+You shouldn't use one `grid_field` global variable to store all the grids, because you excecute `init_grid` three times,
+all of which give the result list to `grid_field`, so in the end, only the last list (the one for hard mode) is stored 
+and thus there is no reaction when you click on the UI of easy or medium. 
 
 ### ref
 

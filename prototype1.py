@@ -8,9 +8,9 @@ from kivy.interactive import InteractiveLauncher
 from kivy.uix.textinput import TextInput  # name for scoreboard
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
-# from kivy.uix.floatlayout import FloatLayout
-# from kivy.uix.anchorlayout import AnchorLayout
-# from kivy.uix.relativelayout import RelativeLayout
+#from kivy.uix.floatlayout import FloatLayout
+#from kivy.uix.anchorlayout import AnchorLayout
+#from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.button import Button
 from kivy.uix.button import ButtonBehavior
 from kivy.uix.screenmanager import ScreenManager, Screen
@@ -20,25 +20,20 @@ from kivy.properties import NumericProperty
 from kivy.properties import ListProperty
 from kivy.event import EventDispatcher
 from random import randint
-
+import Global
 
 ##TODO: position and size
 ##understand layouts
-### Use less global var
 
-class Global():
-    def __init__(self):
-        self.width = 0
-        self.height = 0
-        self.mines = 0
-        self.
 
-def init_grid(width, height, mines):
+def init_grid(width, height, mines, difficulty):
+    print("initializing")
+    # difficulty is the game screen object
     global grid_field
-    global flagged
+    #global flagged
     # Initiate the gird field with empty grids
-    grid_field = [[Grid() for i in range(width)] for j in range(height)]
-    flagged = 0
+    grid_field = [[Grid(difficulty) for i in range(width)] for j in range(height)]
+    Global.flagged = 0
     ## (maybe) TODO
     ## incorporate other O(N) things here!!!!!!!!!!
 
@@ -70,28 +65,25 @@ def init_grid(width, height, mines):
         for j in range(height):
             grid_field[j][i].build(j, i)
 
-
 class Grid():
-    def __init__(self, **kwargs):
-        # Screen.__init__(self, **kwargs)
-        ### Inheritance of `Screen` class is to enable screen switch when win/lose at the end of a game
+    def __init__(self, difficulty, **kwargs):
 
         self.isMine = 0
         self.isClicked = 0
         self.isFlagged = 0
         self.neighbors = 0
         self.location = []  # (height_index, width_index)
-        self.button = Button(size=(gridSize, gridSize))
+        self.button = Button(size=(Global.gridSize, Global.gridSize))
         # gridSize is the global variable defined at the beginning of each gamemode
         self.button.bind(on_touch_down=self.onPressed)
-        #self.easy = easy
+        self.difficulty = difficulty
 
     def build(self, x, y):
         self.location = [x, y]
         self.count_neighbors()
 
     def onPressed(self, instance, touch):
-        global flagged
+        #global flagged
         if self.button.collide_point(*touch.pos):
             if touch.button == "left":
                 self.isClicked = 1
@@ -114,16 +106,15 @@ class Grid():
                 if self.isFlagged == 0:
                     self.isFlagged = 1
                     self.button.text = "*"
-                    flagged += 1
-                    if flagged == mines:
+                    Global.flagged += 1
+                    if Global.flagged == Global.mines:
                         #########################################################################
-                        global easy, medium, hard
-                        easy.change_to_win()
+                        self.difficulty.change_to_win()
                     # color change
                 elif self.isFlagged == 1:
                     self.isFlagged = 0
                     self.button.text = " "
-                    flagged -= 1
+                    Global.flagged -= 1
                     # color change
                 # self.color = (225,225,126,1)
                 # difference between background color and color attr
@@ -134,7 +125,7 @@ class Grid():
             count = 0
             for i in range(-1, 2):
                 for j in range(-1, 2):
-                    if (0 <= self.location[0] + i < width) and (0 <= self.location[1] + j < height):
+                    if (0 <= self.location[0] + i < Global.width) and (0 <= self.location[1] + j < Global.height):
                         if grid_field[self.location[0] + i][self.location[1] + j].isMine == 1:
                             count += 1
             self.neighbors = count
@@ -143,7 +134,7 @@ class Grid():
         # gridObj is already confirmed to be 0 -- no mines in its surrounding
         for i in range(-1, 2):
             for j in range(-1, 2):
-                if (0 <= gridObj.location[0] + i < width) and (0 <= gridObj.location[1] + j < height):
+                if (0 <= gridObj.location[0] + i < Global.width) and (0 <= gridObj.location[1] + j < Global.height):
                     check = grid_field[gridObj.location[0] + i][gridObj.location[1] + j]
                     if check.isClicked == 0 and check.neighbors == 0 and check.isMine == 0:
                         check.button.text = str(check.neighbors)
@@ -153,34 +144,36 @@ class Grid():
                         # neighbor_grids.remove(gridObj)
                         # why this one gives ValueError: list.remove(x): x not in list???
 
-
 class MineSweep(App):
     def build(self):
         scrm = ScreenManager()
 
-        global easy, medium, hard
-
         menu = Menu(name="menu")
         options = Options(name="options")  # change to scoreboard, because im giving up on customize game...
         gamemode = GameMode(name="gamemode")
-        easy = Easy(name="easy")
-        medium = Medium(name="medium")
-        hard = Hard(name="hard")
+        game = Game(name="game")
+        #medium = Medium(name="medium")
+        #hard = Hard(name="hard")
+        customize = Customize(name="customize")
         win = Win(name="win")
         lose = Lose(name="lose")
 
         ###
-        # compile easy, medium and hard into one class??
+        #gridObj = Grid(easy)
         ###
 
         scrm.add_widget(menu)
         scrm.add_widget(options)
         scrm.add_widget(gamemode)
-        scrm.add_widget(easy)
-        scrm.add_widget(medium)
-        scrm.add_widget(hard)
+        scrm.add_widget(game)
+        #scrm.add_widget(medium)
+        #scrm.add_widget(hard)
+        scrm.add_widget(customize)
         scrm.add_widget(win)
         scrm.add_widget(lose)
+
+        ###
+        #scrm.add_widget(gridObj)
 
         scrm.current = "menu"
         return scrm
@@ -243,12 +236,14 @@ class GameMode(Screen, GridLayout):
         self.easy_button = Button(text="Easy", on_press=self.change_to_easy)
         self.medium_button = Button(text="Medium", on_press=self.change_to_medium)
         self.hard_button = Button(text="Hard", on_press=self.change_to_hard)
+        self.customize_button = Button(text="Customized Game", on_press=self.change_to_customize)
         self.menu_button = Button(text="Back to Menu", on_press=self.change_to_menu)
 
         self.layout.add_widget(self.gamemode_label)
         self.layout.add_widget(self.easy_button)
         self.layout.add_widget(self.medium_button)
         self.layout.add_widget(self.hard_button)
+        self.layout.add_widget(self.customize_button)
         self.layout.add_widget(self.menu_button)
         self.add_widget(self.layout)
 
@@ -257,34 +252,38 @@ class GameMode(Screen, GridLayout):
         self.manager.current = "menu"
 
     def change_to_easy(self, value):
+        Global.width = 10
+        Global.height = 10
+        Global.mines = 1
+        Game().init_game()
         self.manager.transition.direction = "down"
-        self.manager.current = "easy"
+        self.manager.current = "game"
 
     def change_to_medium(self, value):
+        Global.width = 18
+        Global.height = 18
+        Global.mines = 1
         self.manager.transition.direction = "down"
-        self.manager.current = "medium"
+        self.manager.current = "game"
 
     def change_to_hard(self, value):
         self.manager.transition.direction = "down"
-        self.manager.current = "hard"
+        self.manager.current = "game"
 
-class Easy(Screen, GridLayout):
+    def change_to_customize(self, value):
+        self.manager.transition.direction = "down"
+        self.manager.current = "customize"
+
+
+class Game(Screen, GridLayout):
     def __init__(self, **kwargs):
+    #def __init__(self, status=False, **kwargs):
         Screen.__init__(self, **kwargs)
         GridLayout.__init__(self, **kwargs)
 
-        self.layout = GridLayout(cols=10, rows=10)
-
-        global width, height, mines, gridSize, flagged
-
-        width = 10
-        height = 10
-        mines = 1  # to few mines will result in exceeding of maximum recursion !!!!!!!!!!!!
-        ####################################################
-        # TODO: complete win 判断条件 anti hack/cheat lmfao
-        ####################################################
-        gridSize = 60
-        init_grid(width, height, mines)
+    def init_game(self):
+        self.layout = GridLayout(cols=Global.width, rows=Global.height)
+        init_grid(Global.width, Global.height, Global.mines, self)
 
         # TODO
         # position and sizes to be modified to create a better UI
@@ -298,30 +297,8 @@ class Easy(Screen, GridLayout):
         self.manager.current = "win"
 
 
-class Medium(Screen, GridLayout):
-    def __init__(self, **kwargs):
-        Screen.__init__(self, **kwargs)
-        GridLayout.__init__(self, **kwargs)
-
-        self.layout = GridLayout(cols=18, rows=18)
-
-        global width, height, mines, gridSize
-        width = 18
-        height = 18
-        mines = 40  # to few mines will result in exceeding of maximum recursion !!!!!!!!!!!!
-        gridSize = 60
-        init_grid(width, height, mines)
-
-        # TODO
-        # position and sizes to be modified to create a better UI
-        for eachRow in grid_field:
-            for each in eachRow:
-                self.layout.add_widget(each.button)
-        self.add_widget(self.layout)
-
-
-
-class Hard(Screen, GridLayout):
+## i might give up on customize
+class Customize(Screen, GridLayout):
     def __init__(self, **kwargs):
         Screen.__init__(self, **kwargs)
         GridLayout.__init__(self, **kwargs)
@@ -348,7 +325,6 @@ class Scoreboard(Screen, GridLayout):
     def __init__(self, **kwargs):
         Screen.__init__(self, **kwargs)
         GridLayout.__init__(self, **kwargs)
-
 
 if __name__ == '__main__':
     MineSweep().run()

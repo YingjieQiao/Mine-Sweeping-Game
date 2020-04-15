@@ -20,6 +20,7 @@ from kivy.properties import NumericProperty
 from kivy.properties import ListProperty
 from kivy.event import EventDispatcher
 from random import randint
+import Global
 
 
 ##TODO: position and size
