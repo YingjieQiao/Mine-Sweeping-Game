@@ -1,0 +1,37 @@
+
+'''
+def init_grid(width, height, mines):
+    global grid_field
+    # Initiate the gird field with empty grids
+    grid_field = [[Grid() for i in range(width)] for j in range(height)]
+    ## (maybe) TODO
+    ## incorporate other O(N) things here!!!!!!!!!!
+
+    '''
+    Interprete the grid field as a MATRIX
+    the i above is the column index, which adds up to WIDTH
+    the j above is the row index, which adds up to HEIGHT
+    '''
+
+    # ======================================================
+
+    '''
+    grid_field[y][x]
+    j is the row index, which adds up to HEIGHT
+    i is the column index, which adds up to WIDTH
+    '''
+
+    # generate mines
+    mineCount = 0
+    while mineCount < mines:
+        i = randint(0, height - 1)
+        j = randint(0, width - 1)
+        if grid_field[j][i].isMine == 0:
+            grid_field[j][i].isMine = 1
+            mineCount += 1
+
+    # fill mines into the grid field
+    for i in range(width):
+        for j in range(height):
+            grid_field[j][i].build(j, i)
+'''
