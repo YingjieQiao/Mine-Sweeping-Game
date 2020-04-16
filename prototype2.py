@@ -150,7 +150,6 @@ class MineSweep(App):
         hard = Hard(name="hard")
         win = Win(name="win")
         lose = Lose(name="lose")
-        gameover = GameOver(name="gameover")
 
         scrm.add_widget(menu)
         scrm.add_widget(gamemode)
@@ -160,7 +159,6 @@ class MineSweep(App):
         scrm.add_widget(scoreboard)
         scrm.add_widget(win)
         scrm.add_widget(lose)
-        scrm.add_widget(gameover)
 
         scrm.current = "menu"
         return scrm
@@ -198,6 +196,42 @@ class Menu(Screen, GridLayout):
 
 class ScoreBoard(Screen, GridLayout):
     def __init__(self, **kwargs):
+        Screen.__init__(self, **kwargs)
+        GridLayout.__init__(self, **kwargs)
+
+        '''
+        I think one way to implement with one scoreboard screen is:
+        use a global function in the __init__
+        no, __init__ is called only once
+        so you need something that can be called over and over again in the scoreboard screen class
+        '''
+        print("init...")
+        ############################ The UI here has to be better lmfao ########################################
+
+        self.layout = GridLayout(cols=1)
+        self.scoreboard_label = Label(text="Score Board")
+        self.menu_button = Button(text="Back to Menu", on_press=self.change_to_menu)
+
+        self.layout.add_widget(self.scoreboard_label)
+
+        data = []
+        with open("scores_local.txt") as file:
+            lines = file.readlines()
+            for line in lines:
+                l0, l1, l2 = line.split()[0], line.split()[1], line.split()[2]
+                data.append([l0, l1, float(l2)])
+        data.sort(key=lambda x: x[2], reverse=True)
+
+        for line in data:
+            string = str(line[0]) + " " + str(line[1]) + " " + str(line[2])
+            self.score_label = Label(text=string)
+            self.layout.add_widget(self.score_label)
+
+        self.layout.add_widget(self.menu_button)
+        self.add_widget(self.layout)
+
+    def reinit(self, **kwargs):
+        print("reinit...")
         Screen.__init__(self, **kwargs)
         GridLayout.__init__(self, **kwargs)
 
@@ -283,11 +317,27 @@ class Easy(Screen, GridLayout):
     def __init__(self, **kwargs):
         Screen.__init__(self, **kwargs)
         GridLayout.__init__(self, **kwargs)
-
-    #def initialize(self):
         self.width = 10
         self.height = 10
         self.mines = 1
+        self.initialize()
+
+    def initialize(self):
+        print("initalizing...")
+        self.layout = GridLayout(cols=self.height, rows=self.width)
+        self.field = init_grid(self.width, self.height, self.mines, self)
+        self.field = build_field(self.field, self.width, self.height)
+        # TODO
+        # position and sizes to be modified to create a better UI
+        for eachRow in self.field:
+            for each in eachRow:
+                self.layout.add_widget(each.button)
+        self.add_widget(self.layout)
+
+    def reinitialize(self):
+        print("reinitalizing...")
+        self.remove_widget(self.layout)
+
         self.layout = GridLayout(cols=self.height, rows=self.width)
         self.field = init_grid(self.width, self.height, self.mines, self)
         self.field = build_field(self.field, self.width, self.height)
@@ -369,23 +419,25 @@ class Win(Screen, GridLayout):
 
 
     def score(self, value):
-        # you must add the "value" argument her lmfao
+        # you must add the "value" argument here lmfao
         self.layout.remove_widget(self.win_label)
         self.layout.remove_widget(self.score_button)
-        scoreAchieved = 100/(Global.end-Global.start)
+        scoreAchieved = 30000/(Global.end-Global.start)
         self.scoreAchieved = scoreAchieved
-        string = "Your score is " + str(scoreAchieved)
+        string = "Your score is " + str(scoreAchieved) + " !"
         self.score_label = Label(text=string)
 
         newHighScore = False
+        highest = ["", "", 0]
         dic = {}
         with open("scores_local.txt") as file:
             lines = file.readlines()
             for line in lines:
                 name, mode, score = line.split()[0], line.split()[1], float(line.split()[2])
-                if scoreAchieved > score and mode == Global.current and name == "NA":
-                    newHighScore = True
-                    break
+                if score > highest[2] and Global.current == highest[1]:
+                    highest = [name, mode, score]
+        if scoreAchieved > highest[2]:
+            newHighScore = True
         if newHighScore == True:
             self.hi_label = Label(text="You have reached a new high score in this difficulty! Would you like to put your name onto the scoreboard?")
             self.yes_button = Button(text="Yes!", on_press=self.yes)
@@ -395,7 +447,17 @@ class Win(Screen, GridLayout):
             self.layout.add_widget(self.yes_button)
             self.layout.add_widget(self.no_button)
         else:
-            self.anotherGame()
+            #anotherGame
+            self.anotherGame_button = Button(text="another game")
+            self.menu_button = Button(text="Back to menu", on_press=self.change_to_menu)
+            # TODO: reset the game
+            self.layout.add_widget(self.score_label)
+            self.layout.add_widget(self.anotherGame_button)
+            self.layout.add_widget(self.menu_button)
+
+    def change_to_menu(self, value):
+        self.manager.transition.direction = "up"
+        self.manager.current = "menu"
 
     def yes(self, value):
         self.layout.remove_widget(self.score_label)
@@ -405,47 +467,47 @@ class Win(Screen, GridLayout):
 
         self.name_label = Label(text="Your name:")
         self.name_input = TextInput()
-        self.anotherGame_button = Button(text="view scoreboard", on_press=self.change_to_scoreboard)
+        self.highscore_button = Button(text="view scoreboard", on_press=self.change_to_scoreboard)
+        self.yes_anotherGame_button = Button(text="another game", on_press=self.yes_anotherGame)
 
         self.layout.add_widget(self.name_label)
         self.layout.add_widget(self.name_input)
-        self.layout.add_widget(self.anotherGame_button)
+        self.layout.add_widget(self.highscore_button)
+        self.layout.add_widget(self.yes_anotherGame_button)
 
     def change_to_scoreboard(self, value):
         with open("scores_local.txt", "a") as file:
             string = "\n" + str(self.name_input.text) + " " + str(Global.current) + " " + str(self.scoreAchieved)
             file.write(string)
-
+        ScoreBoard().reinit()
         self.manager.transition.direction = "up"
         self.manager.current = "scoreboard"
 
     def no(self, value):
-        self.anotherGame()
+        self.no_anotherGame()
 
-    def anotherGame(self):
-        pass
+    def yes_anotherGame(self, value):
+        self.layout.remove_widget(self.name_label)
+        self.layout.remove_widget(self.name_input)
+        self.layout.remove_widget(self.highscore_button)
+        self.layout.remove_widget(self.yes_anotherGame_button)
+        Easy().reinitialize()
+
+
+        self.manager.transition.direction = "up"
+        self.manager.current = "gamemode"
+
+    def no_anotherGame(self):
+        self.layout.remove_widget(self.score_label)
+        self.layout.remove_widget(self.hi_label)
+        self.layout.remove_widget(self.yes_button)
+        self.layout.remove_widget(self.no_button)
+        # TODO: reset the game
 
 class Lose(Screen, GridLayout):
     def __init__(self, **kwargs):
         Screen.__init__(self, **kwargs)
         GridLayout.__init__(self, **kwargs)
-
-class GameOver(Screen, GridLayout):
-    def __init__(self, **kwargs):
-        Screen.__init__(self, **kwargs)
-        GridLayout.__init__(self, **kwargs)
-
-        self.layout = GridLayout(cols=1)
-        self.win_label = Label(text="You fucking win")
-
-        self.layout.add_widget(self.win_label)
-        #self.add_widget(self.layout)
-
-    def win(self):
-        pass
-
-    def lose(self):
-        pass
 
 
 if __name__ == '__main__':
