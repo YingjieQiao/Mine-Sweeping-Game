@@ -16,19 +16,23 @@ from kivy.uix.button import ButtonBehavior
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.lang import Builder
 from kivy.core.window import Window
+from kivy.properties import NumericProperty
+from kivy.properties import ListProperty
+from kivy.event import EventDispatcher
 from random import randint
 import Global
-import time
-import math
 
 ##TODO: position and size
 ##understand layouts
 
 
 def init_grid(width, height, mines, difficulty):
-    # "difficulty" is the game screen object
+    # difficulty is the game screen object
     # Initiate the gird field with empty grids
     grid_field = [[Grid(difficulty) for i in range(width)] for j in range(height)]
+    #Global.flagged = 0
+    ## (maybe) TODO
+    ## incorporate other O(N) things here!!!!!!!!!!
     '''
     Interprete the grid field as a MATRIX
     the i above is the column index, which adds up to WIDTH
@@ -73,11 +77,8 @@ class Grid():
         self.count_neighbors()
 
     def onPressed(self, instance, touch):
+        #global flagged
         if self.button.collide_point(*touch.pos):
-            if Global.first:
-                Global.start = time.time()
-                Global.current = self.difficulty.name
-                Global.first = False
             if touch.button == "left":
                 self.isClicked = 1
                 if self.isMine == 0:
@@ -93,17 +94,15 @@ class Grid():
                         self.button.text = str(self.neighbors)
                 else:
                     self.button.text = "!"
-                    # more intuitive font and colr and like "!!!"
                     ### trigger lose
                     print("game over!")
             elif touch.button == "right":
                 if self.isFlagged == 0:
                     self.isFlagged = 1
                     self.button.text = "*"
-                    # more intuitive font and colr and like "***"
                     Global.flagged += 1
-                    if Global.flagged == self.difficulty.mines:
-                        Global.end = time.time()
+                    if Global.flagged == Global.mines:
+                        #########################################################################
                         self.difficulty.change_to_win()
                     # color change
                 elif self.isFlagged == 1:
@@ -116,6 +115,18 @@ class Grid():
                 # why it fixed the white at top right color bug
 
     def count_neighbors(self):
+        '''
+        if self.difficulty.name == "easy":
+            field = Global.easy_field
+        elif self.difficulty.name == "medium":
+            field = Global.medium_field
+        elif self.difficulty.name == "hard":
+            field = Global.hard_field
+        else:
+            print("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n")
+            print(self.difficulty.name)
+            print("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n")
+        '''
         if self.isMine == 0:
             count = 0
             for i in range(-1, 2):
@@ -126,6 +137,18 @@ class Grid():
             self.neighbors = count
 
     def reveal_zeros(self, gridObj):
+        '''
+        if self.difficulty.name == "easy":
+            field = Global.easy_field
+        elif self.difficulty.name == "medium":
+            field = Global.medium_field
+        elif self.difficulty.name == "hard":
+            field = Global.hard_field
+        else:
+            print("KKKKKKKKKKKKKKKKKKKKKKKKKKIKKKKKKKKKKKKKKKKKKKKKKKKKKK\n")
+            print(type(self.difficulty))
+            print("KKKKKKKKKKKKKKKKKKKKKKKKKKIKKKKKKKKKKKKKKKKKKKKKKKKKKK\n")
+        '''
         # gridObj is already confirmed to be 0 -- no mines in its surrounding
         for i in range(-1, 2):
             for j in range(-1, 2):
@@ -136,6 +159,8 @@ class Grid():
                         check.isClicked = 1
                         if check not in neighbor_grids:
                             neighbor_grids.append(check)
+                        # neighbor_grids.remove(gridObj)
+                        # why this one gives ValueError: list.remove(x): x not in list???
 
 
 class MineSweep(App):
@@ -143,24 +168,24 @@ class MineSweep(App):
         scrm = ScreenManager()
 
         menu = Menu(name="menu")
-        scoreboard = ScoreBoard(name="scoreboard")
+        options = Options(name="options")  # change to scoreboard, because im giving up on customize game...
         gamemode = GameMode(name="gamemode")
-        easy = Easy(name="easy")
-        medium = Medium(name="medium")
-        hard = Hard(name="hard")
+        #game = Game(name="game")
+        #medium = Medium(name="medium")
+        #hard = Hard(name="hard")
+        #customize = Customize(name="customize")
         win = Win(name="win")
         lose = Lose(name="lose")
-        gameover = GameOver(name="gameover")
 
         scrm.add_widget(menu)
+        scrm.add_widget(options)
         scrm.add_widget(gamemode)
-        scrm.add_widget(easy)
-        scrm.add_widget(medium)
-        scrm.add_widget(hard)
-        scrm.add_widget(scoreboard)
+        #scrm.add_widget(game)
+        #scrm.add_widget(medium)
+        #scrm.add_widget(hard)
+        #scrm.add_widget(customize)
         scrm.add_widget(win)
         scrm.add_widget(lose)
-        scrm.add_widget(gameover)
 
         scrm.current = "menu"
         return scrm
@@ -173,12 +198,11 @@ class Menu(Screen, GridLayout):
 
         self.layout = GridLayout(cols=1)
         self.start_button = Button(text="Start Game", on_press=self.change_to_gamemode)
-        self.scoreboard_button = Button(text="scoreboard", on_press=self.change_to_scoreboard)
-        # why here no paranthesis??
+        self.options_button = Button(text="Options", on_press=self.change_to_options)
         self.quit_button = Button(text="Quit", on_press=self.quit_app)
 
         self.layout.add_widget(self.start_button)
-        self.layout.add_widget(self.scoreboard_button)
+        self.layout.add_widget(self.options_button)
         self.layout.add_widget(self.quit_button)
 
         self.add_widget(self.layout)
@@ -187,48 +211,25 @@ class Menu(Screen, GridLayout):
         self.manager.transition.direction = "up"
         self.manager.current = "gamemode"
 
-    def change_to_scoreboard(self, value):
+    def change_to_options(self, value):
         self.manager.transition.direction = "up"
-        self.manager.current = "scoreboard"
+        self.manager.current = "options"
 
     def quit_app(self, value):
         App.get_running_app().stop()
         Window.close()
 
 
-class ScoreBoard(Screen, GridLayout):
+class Options(Screen, GridLayout):
     def __init__(self, **kwargs):
         Screen.__init__(self, **kwargs)
         GridLayout.__init__(self, **kwargs)
 
-        '''
-        I think one way to implement with one scoreboard screen is:
-        use a global function in the __init__
-        no, __init__ is called only once
-        so you need something that can be called over and over again in the scoreboard screen class
-        '''
-
-        ############################ The UI here has to be better lmfao ########################################
-
         self.layout = GridLayout(cols=1)
-        self.scoreboard_label = Label(text="Score Board")
+        self.options_label = Label(text="Options")
         self.menu_button = Button(text="Back to Menu", on_press=self.change_to_menu)
 
-        self.layout.add_widget(self.scoreboard_label)
-
-        data = []
-        with open("scores_local.txt") as file:
-            lines = file.readlines()
-            for line in lines:
-                l0, l1, l2 = line.split()[0], line.split()[1], line.split()[2]
-                data.append([l0, l1, float(l2)])
-        data.sort(key=lambda x: x[2], reverse=True)
-
-        for line in data:
-            string = str(line[0]) + " " + str(line[1]) + " " + str(line[2])
-            self.score_label = Label(text=string)
-            self.layout.add_widget(self.score_label)
-
+        self.layout.add_widget(self.options_label)
         self.layout.add_widget(self.menu_button)
         self.add_widget(self.layout)
 
@@ -263,31 +264,47 @@ class GameMode(Screen, GridLayout):   ## SM here!
         self.manager.current = "menu"
 
     def change_to_easy(self, value):
+        scrm = ScreenManager()
+        game = Game(name="game", diffi="easy")
+        scrm.add_widget(game)
+
+
         self.manager.transition.direction = "up"
-        self.manager.current = "easy"
+        self.manager.current = "game"
 
     def change_to_medium(self, value):
         self.manager.transition.direction = "up"
-        self.manager.current = "medium"
+        self.manager.current = "game"
 
     def change_to_hard(self, value):
         self.manager.transition.direction = "up"
-        self.manager.current = "hard"
+        self.manager.current = "game"
 
     def change_to_customize(self, value):
         self.manager.transition.direction = "up"
-        self.manager.current = "customize"
+        self.manager.current = "game"
 
 
-class Easy(Screen, GridLayout):
-    def __init__(self, **kwargs):
+
+
+class Game(Screen, GridLayout):
+    def __init__(self, diffi, **kwargs):
         Screen.__init__(self, **kwargs)
         GridLayout.__init__(self, **kwargs)
 
-    #def initialize(self):
-        self.width = 10
-        self.height = 10
-        self.mines = 1
+        if diffi == "easy":
+            self.width = 10
+            self.height = 10
+            self.mines = 1
+
+        elif diffi == "medium":
+            self.width = 18
+            self.height = 18
+            self.mines = 1
+        elif diffi == "hard":
+            self.width = 24
+            self.height = 24
+            self.mines = 1
         self.layout = GridLayout(cols=self.height, rows=self.width)
         self.field = init_grid(self.width, self.height, self.mines, self)
         self.field = build_field(self.field, self.width, self.height)
@@ -302,135 +319,7 @@ class Easy(Screen, GridLayout):
         self.manager.transition.direction = "up"
         self.manager.current = "win"
 
-class Medium(Screen, GridLayout):
-    def __init__(self, **kwargs):
-        Screen.__init__(self, **kwargs)
-        GridLayout.__init__(self, **kwargs)
-
-        self.width = 18
-        self.height = 18
-        self.mines = 1
-        self.layout = GridLayout(cols=self.height, rows=self.width)
-        self.field = init_grid(self.width, self.height, self.mines, self)
-        self.field = build_field(self.field, self.width, self.height)
-        # TODO
-        # position and sizes to be modified to create a better UI
-        for eachRow in self.field:
-            for each in eachRow:
-                self.layout.add_widget(each.button)
-        self.add_widget(self.layout)
-
-    def change_to_gameover(self):
-        self.manager.transition.direction = "up"
-        self.manager.current = "gameover"
-
-class Hard(Screen, GridLayout):
-    def __init__(self, **kwargs):
-        Screen.__init__(self, **kwargs)
-        GridLayout.__init__(self, **kwargs)
-
-        self.width = 24
-        self.height = 24
-        self.mines = 1
-        self.layout = GridLayout(cols=self.height, rows=self.width)
-        self.field = init_grid(self.width, self.height, self.mines, self)
-        self.field = build_field(self.field, self.width, self.height)
-        # TODO
-        # position and sizes to be modified to create a better UI
-        for eachRow in self.field:
-            for each in eachRow:
-                self.layout.add_widget(each.button)
-        self.add_widget(self.layout)
-
-    def change_to_gameover(self):
-        print(Global.start, Global.end, Global.end-Global.start)
-        self.manager.transition.direction = "up"
-        self.manager.current = "gameover"
-
-'''
-class HeaderLabel
-# for the name input part, bigger font
-# can also do similar thing for other parts when polishing the UI
-'''
-
 class Win(Screen, GridLayout):
-    def __init__(self, **kwargs):
-        Screen.__init__(self, **kwargs)
-        GridLayout.__init__(self, **kwargs)
-
-        self.layout = GridLayout(cols=1)
-        self.win_label = Label(text="Congratulations! You win!")
-        self.score_button = Button(text="Click to continue", on_press=self.score)
-        self.scoreAchieved = 0
-
-        self.layout.add_widget(self.win_label)
-        self.layout.add_widget(self.score_button)
-        self.add_widget(self.layout)
-
-
-    def score(self, value):
-        # you must add the "value" argument her lmfao
-        self.layout.remove_widget(self.win_label)
-        self.layout.remove_widget(self.score_button)
-        scoreAchieved = 100/(Global.end-Global.start)
-        self.scoreAchieved = scoreAchieved
-        string = "Your score is " + str(scoreAchieved)
-        self.score_label = Label(text=string)
-
-        newHighScore = False
-        dic = {}
-        with open("scores_local.txt") as file:
-            lines = file.readlines()
-            for line in lines:
-                name, mode, score = line.split()[0], line.split()[1], float(line.split()[2])
-                if scoreAchieved > score and mode == Global.current and name == "NA":
-                    newHighScore = True
-                    break
-        if newHighScore == True:
-            self.hi_label = Label(text="You have reached a new high score in this difficulty! Would you like to put your name onto the scoreboard?")
-            self.yes_button = Button(text="Yes!", on_press=self.yes)
-            self.no_button = Button(text="Nah...", on_press=self.no)
-            self.layout.add_widget(self.score_label)
-            self.layout.add_widget(self.hi_label)
-            self.layout.add_widget(self.yes_button)
-            self.layout.add_widget(self.no_button)
-        else:
-            self.anotherGame()
-
-    def yes(self, value):
-        self.layout.remove_widget(self.score_label)
-        self.layout.remove_widget(self.hi_label)
-        self.layout.remove_widget(self.yes_button)
-        self.layout.remove_widget(self.no_button)
-
-        self.name_label = Label(text="Your name:")
-        self.name_input = TextInput()
-        self.anotherGame_button = Button(text="view scoreboard", on_press=self.change_to_scoreboard)
-
-        self.layout.add_widget(self.name_label)
-        self.layout.add_widget(self.name_input)
-        self.layout.add_widget(self.anotherGame_button)
-
-    def change_to_scoreboard(self, value):
-        with open("scores_local.txt", "a") as file:
-            string = "\n" + str(self.name_input.text) + " " + str(Global.current) + " " + str(self.scoreAchieved)
-            file.write(string)
-
-        self.manager.transition.direction = "up"
-        self.manager.current = "scoreboard"
-
-    def no(self, value):
-        self.anotherGame()
-
-    def anotherGame(self):
-        pass
-
-class Lose(Screen, GridLayout):
-    def __init__(self, **kwargs):
-        Screen.__init__(self, **kwargs)
-        GridLayout.__init__(self, **kwargs)
-
-class GameOver(Screen, GridLayout):
     def __init__(self, **kwargs):
         Screen.__init__(self, **kwargs)
         GridLayout.__init__(self, **kwargs)
@@ -439,13 +328,19 @@ class GameOver(Screen, GridLayout):
         self.win_label = Label(text="You fucking win")
 
         self.layout.add_widget(self.win_label)
-        #self.add_widget(self.layout)
+        self.add_widget(self.layout)
 
-    def win(self):
-        pass
 
-    def lose(self):
-        pass
+class Lose(Screen, GridLayout):
+    def __init__(self, **kwargs):
+        Screen.__init__(self, **kwargs)
+        GridLayout.__init__(self, **kwargs)
+
+
+class Scoreboard(Screen, GridLayout):
+    def __init__(self, **kwargs):
+        Screen.__init__(self, **kwargs)
+        GridLayout.__init__(self, **kwargs)
 
 
 if __name__ == '__main__':
