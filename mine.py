@@ -27,15 +27,15 @@ def init_grid(width, height, mines, difficulty):
     '''
     # ======================================================
     '''
-    grid_field[y][x]
+    grid_field[j][i]
     j is the row index, which adds up to HEIGHT
     i is the column index, which adds up to WIDTH
     '''
     # generate mines
     mineCount = 0
     while mineCount < mines:
-        i = randint(0, height - 1)
-        j = randint(0, width - 1)
+        j = randint(0, height - 1)
+        i = randint(0, width - 1)
         if grid_field[j][i].isMine == 0:
             grid_field[j][i].isMine = 1
             mineCount += 1
@@ -84,22 +84,29 @@ class Grid():
                         self.button.text = str(self.neighbors)
                 else:
                     self.button.text = "!"
-                    # more intuitive font and colr and like "!!!"
-                    self.difficulty.change_to_lose()
+                    # more intuitive font and color and like "!!!"
+                    self.difficulty.change_to_lose1()
             elif touch.button == "right":
                 if self.isFlagged == 0:
                     self.isFlagged = 1
                     self.button.text = "*"
-                    # more intuitive font and colr and like "***"
+                    # more intuitive font and color and like "***"
                     Global.flagged += 1
+                    if self.isMine == 1:
+                        Global.effFlag += 1
                     if Global.flagged == self.difficulty.mines:
                         Global.end = time.time()
-                        self.difficulty.change_to_win()
+                        if Global.effFlag == self.difficulty.mines:
+                            self.difficulty.change_to_win()
+                        else:
+                            self.difficulty.change_to_lose2()
                     # color change
                 elif self.isFlagged == 1:
                     self.isFlagged = 0
                     self.button.text = " "
                     Global.flagged -= 1
+                    if self.isMine == 1:
+                        Global.effFlag -= 1
                     # color change
                 # self.color = (225,225,126,1)
                 # difference between background color and color attr
@@ -119,7 +126,8 @@ class Grid():
         # gridObj is already confirmed to be 0 -- no mines in its surrounding
         for i in range(-1, 2):
             for j in range(-1, 2):
-                if (0 <= gridObj.location[0] + i < Global.width) and (0 <= gridObj.location[1] + j < Global.height):
+                #if (0 <= gridObj.location[0] + i < self.difficulty.width) and (0 <= gridObj.location[1] + j < self.difficulty.height):
+                if (0 <= gridObj.location[0] + i < len(self.difficulty.field)) and (0 <= gridObj.location[1] + j < len(self.difficulty.field[0])):
                     check = self.difficulty.field[gridObj.location[0] + i][gridObj.location[1] + j]
                     if check.isClicked == 0 and check.neighbors == 0 and check.isMine == 0:
                         check.button.text = str(check.neighbors)
@@ -138,7 +146,8 @@ class MineSweep(App):
         medium = Medium(name="medium")
         hard = Hard(name="hard")
         win = Win(name="win")
-        lose = Lose(name="lose")
+        lose1 = Lose1(name="lose1")
+        lose2 = Lose2(name="lose2")
 
         scrm.add_widget(menu)
         scrm.add_widget(gamemode)
@@ -147,7 +156,8 @@ class MineSweep(App):
         scrm.add_widget(hard)
         scrm.add_widget(scoreboard)
         scrm.add_widget(win)
-        scrm.add_widget(lose)
+        scrm.add_widget(lose1)
+        scrm.add_widget(lose2)
 
         scrm.current = "menu"
         return scrm
@@ -297,9 +307,13 @@ class Easy(Screen, GridLayout):
         self.manager.transition.direction = "up"
         self.manager.current = "win"
 
-    def change_to_lose(self):
+    def change_to_lose1(self):
         self.manager.transition.direction = "up"
-        self.manager.current = "lose"
+        self.manager.current = "lose1"
+
+    def change_to_lose2(self):
+        self.manager.transition.direction = "up"
+        self.manager.current = "lose2"
 
 class Medium(Screen, GridLayout):
     def __init__(self, **kwargs):
@@ -323,9 +337,13 @@ class Medium(Screen, GridLayout):
         self.manager.transition.direction = "up"
         self.manager.current = "win"
 
-    def change_to_lose(self):
+    def change_to_lose1(self):
         self.manager.transition.direction = "up"
-        self.manager.current = "lose"
+        self.manager.current = "lose1"
+
+    def change_to_lose2(self):
+        self.manager.transition.direction = "up"
+        self.manager.current = "lose2"
 
 class Hard(Screen, GridLayout):
     def __init__(self, **kwargs):
@@ -349,9 +367,13 @@ class Hard(Screen, GridLayout):
         self.manager.transition.direction = "up"
         self.manager.current = "win"
 
-    def change_to_lose(self):
+    def change_to_lose1(self):
         self.manager.transition.direction = "up"
-        self.manager.current = "lose"
+        self.manager.current = "lose1"
+
+    def change_to_lose2(self):
+        self.manager.transition.direction = "up"
+        self.manager.current = "lose2"
 
 '''
 class HeaderLabel
@@ -453,13 +475,33 @@ class Win(Screen, GridLayout):
         App.get_running_app().stop()
         Window.close()
 
-class Lose(Screen, GridLayout):
+class Lose1(Screen, GridLayout):
     def __init__(self, **kwargs):
         Screen.__init__(self, **kwargs)
         GridLayout.__init__(self, **kwargs)
         self.layout = GridLayout(cols=1)
 
         self.lose_label1 = Label(text="You clicked on a mine... :(")
+        self.lose_label2 = Label(text="Good luck next time!")
+        self.exit_button = Button(text="exit game", on_press=self.exit_game)
+
+        self.layout.add_widget(self.lose_label1)
+        self.layout.add_widget(self.lose_label2)
+        self.layout.add_widget(self.exit_button)
+
+        self.add_widget(self.layout)
+
+    def exit_game(self, value):
+        App.get_running_app().stop()
+        Window.close()
+
+class Lose2(Screen, GridLayout):
+    def __init__(self, **kwargs):
+        Screen.__init__(self, **kwargs)
+        GridLayout.__init__(self, **kwargs)
+        self.layout = GridLayout(cols=1)
+
+        self.lose_label1 = Label(text="You misflagged a safe grid, and you didn't find out in the end... :(")
         self.lose_label2 = Label(text="Good luck next time!")
         self.exit_button = Button(text="exit game", on_press=self.exit_game)
 
