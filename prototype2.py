@@ -297,6 +297,7 @@ class GameMode(Screen, GridLayout):   ## SM here!
         self.manager.current = "menu"
 
     def change_to_easy(self, value):
+        Easy().initialize()
         self.manager.transition.direction = "up"
         self.manager.current = "easy"
 
