@@ -39,6 +39,7 @@ and thus there is no reaction when you click on the UI of easy or medium.
 
 4. you can make the menu page a state machine
 
+5. redo the data reading part. the first `highest` value
 
 ### ref
 
