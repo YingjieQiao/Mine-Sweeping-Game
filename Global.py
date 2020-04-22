@@ -1,8 +1,5 @@
 gridSize = 60
 flagged = 0
-easy_field = []
-medium_field = []
-hard_field = []
 start = 0
 end = 0
 first = True

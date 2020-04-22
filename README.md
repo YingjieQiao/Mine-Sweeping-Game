@@ -41,6 +41,9 @@ and thus there is no reaction when you click on the UI of easy or medium.
 
 5. redo the data reading part. the first `highest` value
 
+6. about the 10/18/24 instead of self.data thing: I started off using these two, even thought the 2 attrs are
+untouched, as in un mdified, but in the easy mode, which I expeirments, they are changed to 800.....
+
 ### ref
 
 adding new attr: https://subscription.packtpub.com/book/application_development/9781783987382/1/ch01lvl1sec12/declaring-properties-within-a-class 

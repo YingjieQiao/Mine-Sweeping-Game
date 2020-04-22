@@ -6,7 +6,9 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.button import Button
 from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.properties import ObjectProperty
 from kivy.core.window import Window
+from kivy.uix.popup import Popup
 from random import randint
 import Global
 import time
@@ -15,38 +17,6 @@ import math
 ##TODO: position and size
 ##understand layouts
 
-
-def init_grid(width, height, mines, difficulty):
-    # "difficulty" is the game screen object
-    # Initiate the gird field with empty grids
-    grid_field = [[Grid(difficulty) for i in range(width)] for j in range(height)]
-    '''
-    Interprete the grid field as a MATRIX
-    the i above is the column index, which adds up to WIDTH
-    the j above is the row index, which adds up to HEIGHT
-    '''
-    # ======================================================
-    '''
-    grid_field[j][i]
-    j is the row index, which adds up to HEIGHT
-    i is the column index, which adds up to WIDTH
-    '''
-    # generate mines
-    mineCount = 0
-    while mineCount < mines:
-        j = randint(0, height - 1)
-        i = randint(0, width - 1)
-        if grid_field[j][i].isMine == 0:
-            grid_field[j][i].isMine = 1
-            mineCount += 1
-    return grid_field
-
-def build_field(grid_field, width, height):
-    # fill mines into the grid field
-    for i in range(width):
-        for j in range(height):
-            grid_field[j][i].build(j, i)
-    return grid_field
 
 class Grid():
     def __init__(self, difficulty, **kwargs):
@@ -118,9 +88,23 @@ class Grid():
             count = 0
             for i in range(-1, 2):
                 for j in range(-1, 2):
-                    if (0 <= self.location[0] + i < self.difficulty.width) and (0 <= self.location[1] + j < self.difficulty.height):
+                    if (0 <= self.location[0] + i < len(self.difficulty.field)) and (0 <= self.location[1] + j < len(self.difficulty.field[0])):
                         if self.difficulty.field[self.location[0] + i][self.location[1] + j].isMine == 1:
                             count += 1
+                    '''
+                    if Global.current = "easy":
+                        if (0 <= self.location[0] + i < 10) and (0 <= self.location[1] + j < 10):
+                            if self.difficulty.field[self.location[0] + i][self.location[1] + j].isMine == 1:
+                                count += 1
+                    elif Global.current = "medium":
+                        if (0 <= self.location[0] + i < 18) and (0 <= self.location[1] + j < 18):
+                            if self.difficulty.field[self.location[0] + i][self.location[1] + j].isMine == 1:
+                                count += 1
+                    else:
+                        if (0 <= self.location[0] + i < 24) and (0 <= self.location[1] + j < 24):
+                            if self.difficulty.field[self.location[0] + i][self.location[1] + j].isMine == 1:
+                                count += 1
+                    '''
             self.neighbors = count
 
     def reveal_zeros(self, gridObj):
@@ -146,7 +130,7 @@ class MineSweep(App):
         easy = Easy(name="easy")
         medium = Medium(name="medium")
         hard = Hard(name="hard")
-        win = Win(name="win")
+        #win = Win(name="win")
         lose1 = Lose1(name="lose1")
         lose2 = Lose2(name="lose2")
 
@@ -156,7 +140,7 @@ class MineSweep(App):
         scrm.add_widget(medium)
         scrm.add_widget(hard)
         scrm.add_widget(scoreboard)
-        scrm.add_widget(win)
+        #scrm.add_widget(win)
         scrm.add_widget(lose1)
         scrm.add_widget(lose2)
 
@@ -321,9 +305,10 @@ class Easy(Screen):
         self.width = 10
         self.height = 10
         self.mines = 1
-        self.layout = GridLayout(cols=self.height, rows=self.width)
-        self.field = init_grid(self.width, self.height, self.mines, self)
-        self.field = build_field(self.field, self.width, self.height)
+        self.layout = GridLayout(cols=10, rows=10)
+        self.field = []
+        self.init_grid()
+        self.win_popup = Win(self)
         # TODO
         # position and sizes to be modified to create a better UI
         for eachRow in self.field:
@@ -332,11 +317,8 @@ class Easy(Screen):
         self.add_widget(self.layout)
 
     def reinitialize(self):
+        self.clear_widgets()
         print("reinitalizing...")
-        # reset the current widget back to orginal
-        # set label to " " and isMine = 0 and isFlag = 0
-        # random 10 isMine = 1
-        # post on stackoverflow lmao, i cannot T.T
         '''
                 for eachRow in self.field:
                     for each in eachRow:
@@ -345,30 +327,46 @@ class Easy(Screen):
                         each.button.isClicked = 0
                         each.button.isFlagged = 0
         '''
-
+        Global.first = True
         self.field = []
-        self.field = [[Grid(self) for i in range(self.width)] for j in range(self.height)]
-
-        mineCount = 0
-        while mineCount < self.mines:
-            j = randint(0, self.height - 1)
-            i = randint(0, self.width - 1)
-            if self.field[j][i].isMine == 0:
-                self.field[j][i].isMine = 1
-                mineCount += 1
-        self.field = build_field(self.field, self.width, self.height)
-
-        self.clear_widgets()
-        self.layout = GridLayout(cols=self.height, rows=self.width)
+        self.layout = GridLayout(cols=10, rows=10)
+        self.init_grid()
         for eachRow in self.field:
             for each in eachRow:
                 self.layout.add_widget(each.button)
         self.add_widget(self.layout)
 
+    def init_grid(self):
+        for j in range(10):
+            print("j= ", j)
+            new = []
+            for i in range(10):
+                print("i=", i)
+                new.append(Grid(self))
+            self.field.append(new)
+
+        #self.field = [[Grid(self) for i in range(self.width)] for j in range(self.height)]
+
+        mineCount = 0
+        while mineCount < self.mines:
+            j = randint(0, 9)
+            i = randint(0, 9)
+            if self.field[j][i].isMine == 0:
+                self.field[j][i].isMine = 1
+                mineCount += 1
+
+        for i in range(10):
+            for j in range(10):
+                self.field[j][i].build(j, i)
+        print(len(self.field))
+        print(len(self.field[0]))
 
     def change_to_win(self):
-        self.manager.transition.direction = "up"
-        self.manager.current = "win"
+
+        #self.manager.transition.direction = "up"
+        #self.manager.current = "win"
+        #self.reinitialize()
+        self.win_popup.open()
 
     def change_to_lose1(self):
         self.manager.transition.direction = "up"
@@ -398,6 +396,7 @@ class Medium(Screen):
     def change_to_win(self):
         self.manager.transition.direction = "up"
         self.manager.current = "win"
+
 
     def change_to_lose1(self):
         self.manager.transition.direction = "up"
@@ -442,14 +441,15 @@ class HeaderLabel
 # can also do similar thing for other parts when polishing the UI
 '''
 
-class Win(Screen):
-    def __init__(self, **kwargs):
-        Screen.__init__(self, **kwargs)
+class Win(Popup):
+    def __init__(self, diffi, **kwargs):
+        Popup.__init__(self, **kwargs)
 
         self.layout = GridLayout(cols=1)
         self.win_label = Label(text="Congratulations! You win!")
         self.score_button = Button(text="Click to continue", on_press=self.score)
         self.scoreAchieved = 0
+        self.diffi = diffi
 
         self.layout.add_widget(self.win_label)
         self.layout.add_widget(self.score_button)
@@ -472,7 +472,6 @@ class Win(Screen):
         with open("scores_local.txt") as file:
             lines = file.readlines()
             for line in lines:
-                # l0, l1, l2 = line.split()[0], line.split()[-2], line.split()[-1]
                 segments = line.split()
                 name = " "
                 mode, score = segments[-2], float(segments[-1])
@@ -544,10 +543,11 @@ class Win(Screen):
         self.layout.remove_widget(self.name_input)
         self.layout.remove_widget(self.highscore_button)
         self.layout.remove_widget(self.yes_anotherGame_button)
-        Easy().reinitialize()
-
-        self.manager.transition.direction = "up"
-        self.manager.current = "gamemode"
+        self.diffi.reinitialize()
+        self.dismiss()
+        #App.get_running_app().root.ids.Easy.reinitialize() ###
+        #self.manager.transition.direction = "up"
+        #self.manager.current = "gamemode"
 
     def no_anotherGame(self):
         self.layout.remove_widget(self.score_label)
@@ -594,6 +594,7 @@ class Lose2(Screen):
         App.get_running_app().stop()
         Window.close()
 
+## do a popup window
 
 if __name__ == '__main__':
     MineSweep().run()
