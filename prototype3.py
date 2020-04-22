@@ -64,6 +64,7 @@ class Grid():
         self.count_neighbors()
 
     def onPressed(self, instance, touch):
+        ## SM class the whole thing
         if self.button.collide_point(*touch.pos):
             if Global.first:
                 Global.start = time.time()
@@ -163,10 +164,9 @@ class MineSweep(App):
         return scrm
 
 
-class Menu(Screen, GridLayout):
+class Menu(Screen):
     def __init__(self, **kwargs):
         Screen.__init__(self, **kwargs)
-        GridLayout.__init__(self, **kwargs)
 
         self.layout = GridLayout(cols=1)
         self.start_button = Button(text="Start Game", on_press=self.change_to_gamemode)
@@ -194,10 +194,9 @@ class Menu(Screen, GridLayout):
         Window.close()
 
 
-class ScoreBoard(Screen, GridLayout):
+class ScoreBoard(Screen):
     def __init__(self, **kwargs):
         Screen.__init__(self, **kwargs)
-        GridLayout.__init__(self, **kwargs)
 
         '''
         I think one way to implement with one scoreboard screen is:
@@ -280,10 +279,9 @@ class ScoreBoard(Screen, GridLayout):
         self.manager.current = "menu"
 
 
-class GameMode(Screen, GridLayout):   ## SM here!
+class GameMode(Screen):   ## SM here!
     def __init__(self, **kwargs):
         Screen.__init__(self, **kwargs)
-        GridLayout.__init__(self, **kwargs)
 
         self.layout = GridLayout(cols=1)
         self.gamemode_label = Label(text="Select Difficulty")
@@ -317,10 +315,9 @@ class GameMode(Screen, GridLayout):   ## SM here!
 
 
 
-class Easy(Screen, GridLayout):
+class Easy(Screen):
     def __init__(self, **kwargs):
         Screen.__init__(self, **kwargs)
-        GridLayout.__init__(self, **kwargs)
         self.width = 10
         self.height = 10
         self.mines = 1
@@ -336,19 +333,38 @@ class Easy(Screen, GridLayout):
 
     def reinitialize(self):
         print("reinitalizing...")
-        self.remove_widget(self.layout)
-        #self.layout.clear_widgets()
-        #self.clear_widgets()
+        # reset the current widget back to orginal
+        # set label to " " and isMine = 0 and isFlag = 0
+        # random 10 isMine = 1
+        # post on stackoverflow lmao, i cannot T.T
+        '''
+                for eachRow in self.field:
+                    for each in eachRow:
+                        each.button.text = " "
+                        each.button.isMine = 0
+                        each.button.isClicked = 0
+                        each.button.isFlagged = 0
+        '''
 
-        self.layout = GridLayout(cols=self.height, rows=self.width)
         self.field = []
-        self.field = init_grid(self.width, self.height, self.mines, self)
+        self.field = [[Grid(self) for i in range(self.width)] for j in range(self.height)]
+
+        mineCount = 0
+        while mineCount < self.mines:
+            j = randint(0, self.height - 1)
+            i = randint(0, self.width - 1)
+            if self.field[j][i].isMine == 0:
+                self.field[j][i].isMine = 1
+                mineCount += 1
         self.field = build_field(self.field, self.width, self.height)
 
+        self.clear_widgets()
+        self.layout = GridLayout(cols=self.height, rows=self.width)
         for eachRow in self.field:
             for each in eachRow:
                 self.layout.add_widget(each.button)
         self.add_widget(self.layout)
+
 
     def change_to_win(self):
         self.manager.transition.direction = "up"
@@ -362,10 +378,9 @@ class Easy(Screen, GridLayout):
         self.manager.transition.direction = "up"
         self.manager.current = "lose2"
 
-class Medium(Screen, GridLayout):
+class Medium(Screen):
     def __init__(self, **kwargs):
         Screen.__init__(self, **kwargs)
-        GridLayout.__init__(self, **kwargs)
 
         self.width = 18
         self.height = 18
@@ -392,10 +407,9 @@ class Medium(Screen, GridLayout):
         self.manager.transition.direction = "up"
         self.manager.current = "lose2"
 
-class Hard(Screen, GridLayout):
+class Hard(Screen):
     def __init__(self, **kwargs):
         Screen.__init__(self, **kwargs)
-        GridLayout.__init__(self, **kwargs)
 
         self.width = 24
         self.height = 24
@@ -428,10 +442,9 @@ class HeaderLabel
 # can also do similar thing for other parts when polishing the UI
 '''
 
-class Win(Screen, GridLayout):
+class Win(Screen):
     def __init__(self, **kwargs):
         Screen.__init__(self, **kwargs)
-        GridLayout.__init__(self, **kwargs)
 
         self.layout = GridLayout(cols=1)
         self.win_label = Label(text="Congratulations! You win!")
@@ -543,10 +556,9 @@ class Win(Screen, GridLayout):
         self.layout.remove_widget(self.no_button)
         # TODO: reset the game
 
-class Lose1(Screen, GridLayout):
+class Lose1(Screen):
     def __init__(self, **kwargs):
         Screen.__init__(self, **kwargs)
-        GridLayout.__init__(self, **kwargs)
         self.layout = GridLayout(cols=1)
 
         self.lose_label1 = Label(text="You clicked on a mine... :(")
@@ -563,10 +575,9 @@ class Lose1(Screen, GridLayout):
         App.get_running_app().stop()
         Window.close()
 
-class Lose2(Screen, GridLayout):
+class Lose2(Screen):
     def __init__(self, **kwargs):
         Screen.__init__(self, **kwargs)
-        GridLayout.__init__(self, **kwargs)
         self.layout = GridLayout(cols=1)
 
         self.lose_label1 = Label(text="You misflagged a safe grid, and you didn't find out in the end... :(")
