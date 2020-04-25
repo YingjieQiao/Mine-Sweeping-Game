@@ -44,6 +44,9 @@ and thus there is no reaction when you click on the UI of easy or medium.
 6. about the 10/18/24 instead of self.data thing: I started off using these two, even thought the 2 attrs are
 untouched, as in un mdified, but in the easy mode, which I expeirments, they are changed to 800.....
 
+7.Kivy's colour format follows the opengl convention of being in the range 0-1, not 0-255. Numbers above this range are taken as 1, so your values come out as white. Use color=[0.41, 0.42, 0.74, 1] instead (i.e. dividing by 255).
+
+
 ### ref
 
 adding new attr: https://subscription.packtpub.com/book/application_development/9781783987382/1/ch01lvl1sec12/declaring-properties-within-a-class 
@@ -53,6 +56,8 @@ clicking problem that takes me 2 days: https://stackoverflow.com/questions/45934
 screen switch by calling it outside the class: https://stackoverflow.com/questions/61211225/switching-screens-using-kivy-attributeerror-nonetype-object-has-no-attribute/61213984?noredirect=1#comment108308582_61213984
 
 https://stackoverflow.com/questions/61356660/how-to-reinitialize-a-screen-in-kivy-with-python
+
+https://stackoverflow.com/questions/20181250/changing-the-background-color-of-a-button-in-kivy
 
 (thanks to open source community omg)
 

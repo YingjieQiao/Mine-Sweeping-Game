@@ -1,13 +1,8 @@
 testingtesting easy 0
-NA medium 0
-NA hard 0
-testing easy 1
-123 easy 2
-666 easy 3
-rrr easy 4
-recordExit easy 5
-realRecordExit easy 6
-changee easy 7
-mediumMedio medium 8
-memememeddd medium 3962.053196107985
-harrrrrd hard 3716.1321783975645
+harrrrrd hard 10
+yingjie testing easy 105.76459592647302
+eeeeeeer medium 0
+ medium 2
+wafsafasdavfgawgvawsfafwsafafawfawsfafafafafaafafafafafafafafafafafafafafafafa medium 4
+awwwww medium 3124.5899924714313
+asd hard 1553.2571188939182
