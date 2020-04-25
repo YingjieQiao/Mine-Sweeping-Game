@@ -1,3 +1,13 @@
 testingtesting easy 0
 NA medium 0
 NA hard 0
+testing easy 1
+123 easy 2
+666 easy 3
+rrr easy 4
+recordExit easy 5
+realRecordExit easy 6
+changee easy 7
+mediumMedio medium 8
+memememeddd medium 3962.053196107985
+harrrrrd hard 3716.1321783975645

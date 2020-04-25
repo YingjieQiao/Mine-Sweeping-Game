@@ -4,6 +4,7 @@ from kivy.app import App
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.gridlayout import GridLayout
+from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.core.window import Window
@@ -110,12 +111,11 @@ class MineSweep(App):
         scrm = ScreenManager()
 
         menu = Menu(name="menu")
-        scoreboard = ScoreBoard(name="scoreboard")
+        scoreboard = ScoreBoard(name="scoreboard")   ### change scoreboad into a popup too lmfao
         gamemode = GameMode(name="gamemode")
         easy = Easy(name="easy")
         medium = Medium(name="medium")
         hard = Hard(name="hard")
-        #win = Win(name="win")
         lose1 = Lose1(name="lose1")
         lose2 = Lose2(name="lose2")
 
@@ -125,7 +125,6 @@ class MineSweep(App):
         scrm.add_widget(medium)
         scrm.add_widget(hard)
         scrm.add_widget(scoreboard)
-        #scrm.add_widget(win)
         scrm.add_widget(lose1)
         scrm.add_widget(lose2)
 
@@ -140,19 +139,17 @@ class Menu(Screen):
         self.layout = GridLayout(cols=1)
         self.start_button = Button(text="Start Game", on_press=self.change_to_gamemode)
         self.scoreboard_button = Button(text="scoreboard", on_press=self.change_to_scoreboard)
-        # why here no paranthesis??
+        # why here no paranthesis?? -- understnad how "on_press" works
         self.quit_button = Button(text="Quit", on_press=self.quit_app)
 
         self.layout.add_widget(self.start_button)
         self.layout.add_widget(self.scoreboard_button)
         self.layout.add_widget(self.quit_button)
-
         self.add_widget(self.layout)
 
     def change_to_gamemode(self, value):
         self.manager.transition.direction = "up"
         self.manager.current = "gamemode"
-        #self.manager.switch_to(gamemode, direction='up')
 
     def change_to_scoreboard(self, value):
         self.manager.transition.direction = "up"
@@ -166,22 +163,18 @@ class Menu(Screen):
 class ScoreBoard(Screen):
     def __init__(self, **kwargs):
         Screen.__init__(self, **kwargs)
-
-        '''
-        I think one way to implement with one scoreboard screen is:
-        use a global function in the __init__
-        no, __init__ is called only once when creating the obj
-        so you need something that can be called over and over again in the scoreboard screen class
-        '''
-        print("init...")
+        self.init()
         ############################ The UI here has to be better lmao ########################################
 
+    def init(self):
         self.layout = GridLayout(cols=1)
         self.scoreboard_label = Label(text="Score Board")
         self.menu_button = Button(text="Back to Menu", on_press=self.change_to_menu)
+        self.refresh_button = Button(text="refresh scoreboard", on_press=self.refresh)
 
         self.layout.add_widget(self.scoreboard_label)
-
+        self.layout.add_widget(self.menu_button)
+        self.layout.add_widget(self.refresh_button)
         data = []
         with open("scores_local.txt") as file:
             lines = file.readlines()
@@ -204,44 +197,11 @@ class ScoreBoard(Screen):
             self.score_label = Label(text=string)
             self.layout.add_widget(self.score_label)
 
-        self.layout.add_widget(self.menu_button)
         self.add_widget(self.layout)
 
-    def reinit(self, **kwargs):
-        print("reinit...")
-        Screen.__init__(self, **kwargs)
-        GridLayout.__init__(self, **kwargs)
-
-        self.layout = GridLayout(cols=1)
-        self.scoreboard_label = Label(text="Score Board")
-        self.menu_button = Button(text="Back to Menu", on_press=self.change_to_menu)
-
-        self.layout.add_widget(self.scoreboard_label)
-
-        data = []
-        with open("scores_local.txt") as file:
-            lines = file.readlines()
-            for line in lines:
-                # l0, l1, l2 = line.split()[0], line.split()[-2], line.split()[-1]
-                segments = line.split()
-                name = " "
-                mode, score = segments[-2], segments[-1]
-                if len(segments) == 3:
-                    name = segments[0]
-                elif len(segments) > 3:
-                    name = name.join(segments[:-2])
-                else:
-                    name = "INPUT WAS EMPTY"
-                data.append([name, mode, float(score)])
-        data.sort(key=lambda x: x[2], reverse=True)
-
-        for line in data:
-            string = str(line[0]) + " " + str(line[1]) + " " + str(line[2])
-            self.score_label = Label(text=string)
-            self.layout.add_widget(self.score_label)
-
-        self.layout.add_widget(self.menu_button)
-        self.add_widget(self.layout)
+    def refresh(self, value):
+        self.clear_widgets()
+        self.init()
 
     def change_to_menu(self, value):
         self.manager.transition.direction = "down"
@@ -283,7 +243,6 @@ class GameMode(Screen):   ## SM here!
         self.manager.current = "hard"
 
 
-
 class Easy(Screen):
     def __init__(self, **kwargs):
         Screen.__init__(self, **kwargs)
@@ -294,8 +253,6 @@ class Easy(Screen):
         self.field = []
         self.init_grid()
         self.win_popup = Win(self)
-        # TODO
-        # position and sizes to be modified to create a better UI
         for eachRow in self.field:
             for each in eachRow:
                 self.layout.add_widget(each.button)
@@ -306,6 +263,7 @@ class Easy(Screen):
         Global.first = True
         Global.flagged = 0
         Global.effFlag = 0
+        Global.current = ""
 
         self.field = []
         self.layout = GridLayout(cols=10, rows=10)
@@ -335,11 +293,15 @@ class Easy(Screen):
                 self.field[j][i].build(j, i)
 
     def change_to_win(self):
-
-        #self.manager.transition.direction = "up"
-        #self.manager.current = "win"
-        #self.reinitialize()
         self.win_popup.open()
+
+    def change_to_gamemode(self):
+        self.manager.transition.direction = "up"
+        self.manager.current = "gamemode"
+
+    def change_to_menu(self, value):
+        self.diffi.manager.transition.direction = "up"
+        self.diffi.manager.current = "menu"
 
     def change_to_lose1(self):
         self.manager.transition.direction = "up"
@@ -359,8 +321,7 @@ class Medium(Screen):
         self.layout = GridLayout(cols=self.height, rows=self.width)
         self.field = []
         self.init_grid()
-        # TODO
-        # position and sizes to be modified to create a better UI
+        self.win_popup = Win(self)
         for eachRow in self.field:
             for each in eachRow:
                 self.layout.add_widget(each.button)
@@ -371,6 +332,7 @@ class Medium(Screen):
         Global.first = True
         Global.flagged = 0
         Global.effFlag = 0
+        Global.current = ""
 
         self.field = []
         self.layout = GridLayout(cols=18, rows=18)
@@ -387,8 +349,6 @@ class Medium(Screen):
                 new.append(Grid(self))
             self.field.append(new)
 
-        #self.field = [[Grid(self) for i in range(self.width)] for j in range(self.height)]
-
         mineCount = 0
         while mineCount < self.mines:
             j = randint(0, 17)
@@ -402,9 +362,15 @@ class Medium(Screen):
                 self.field[j][i].build(j, i)
 
     def change_to_win(self):
-        self.manager.transition.direction = "up"
-        self.manager.current = "win"
+        self.win_popup.open()
 
+    def change_to_gamemode(self):
+        self.manager.transition.direction = "up"
+        self.manager.current = "gamemode"
+
+    def change_to_menu(self, value):
+        self.diffi.manager.transition.direction = "up"
+        self.diffi.manager.current = "menu"
 
     def change_to_lose1(self):
         self.manager.transition.direction = "up"
@@ -424,8 +390,7 @@ class Hard(Screen):
         self.layout = GridLayout(cols=self.height, rows=self.width)
         self.field = []
         self.init_grid()
-        # TODO
-        # position and sizes to be modified to create a better UI
+        self.win_popup = Win(self)
         for eachRow in self.field:
             for each in eachRow:
                 self.layout.add_widget(each.button)
@@ -436,6 +401,7 @@ class Hard(Screen):
         Global.first = True
         Global.flagged = 0
         Global.effFlag = 0
+        Global.current = ""
 
         self.field = []
         self.layout = GridLayout(cols=24, rows=24)
@@ -452,8 +418,6 @@ class Hard(Screen):
                 new.append(Grid(self))
             self.field.append(new)
 
-        #self.field = [[Grid(self) for i in range(self.width)] for j in range(self.height)]
-
         mineCount = 0
         while mineCount < self.mines:
             j = randint(0, 23)
@@ -462,13 +426,20 @@ class Hard(Screen):
                 self.field[j][i].isMine = 1
                 mineCount += 1
 
-        for i in range(23):
-            for j in range(23):
+        for i in range(24):
+            for j in range(24):
                 self.field[j][i].build(j, i)
 
     def change_to_win(self):
+        self.win_popup.open()
+
+    def change_to_gamemode(self):
         self.manager.transition.direction = "up"
-        self.manager.current = "win"
+        self.manager.current = "gamemode"
+
+    def change_to_menu(self, value):
+        self.diffi.manager.transition.direction = "up"
+        self.diffi.manager.current = "menu"
 
     def change_to_lose1(self):
         self.manager.transition.direction = "up"
@@ -493,9 +464,10 @@ class Win(Popup):
         self.layout = GridLayout(cols=1)
         self.win_label = Label(text="Congratulations! You win!")
         self.score_button = Button(text="Click to continue", on_press=self.score)
+        self.exit_button = Button(text="exit game", on_press=self.exit_game)
+
         self.scoreAchieved = 0
         self.diffi = diffi
-
         self.layout.add_widget(self.win_label)
         self.layout.add_widget(self.score_button)
         self.add_widget(self.layout)
@@ -504,9 +476,9 @@ class Win(Popup):
         # you must add the "value" argument here lmfao
         self.layout.remove_widget(self.win_label)
         self.layout.remove_widget(self.score_button)
-        scoreAchieved = 3000000*(Global.end-Global.start)
+        scoreAchieved = 5000/(Global.end-Global.start)
         self.scoreAchieved = scoreAchieved
-        string = "Your score is " + str(scoreAchieved) + " !"
+        string = "Your score is " + str(self.scoreAchieved) + " !"
         self.score_label = Label(text=string)
 
         newHighScore = False
@@ -525,12 +497,17 @@ class Win(Popup):
                     name = name.join(segments[:-2])
                 else:
                     name = "INPUT WAS EMPTY"
+                print(highest)
+                print(name, mode, score)
                 if first:
+                    if mode == Global.current:
+                        highest = [name, mode, score]
+                        first = False
+                    else:
+                        pass
+                if score > highest[-1] and mode == highest[-2]:
                     highest = [name, mode, score]
-                    first = False
-                if score > highest[-1] and Global.current == highest[-2]:
-                    highest = [name, mode, score]
-        print(highest, scoreAchieved)
+
         if scoreAchieved > highest[-1] and Global.current == highest[-2]:
             newHighScore = True
 
@@ -538,72 +515,116 @@ class Win(Popup):
             self.hi_label = Label(text="You have reached a new high score in this difficulty! Would you like to put your name onto the scoreboard?")
             self.yes_button = Button(text="Yes!", on_press=self.yes)
             self.no_button = Button(text="Nah...", on_press=self.no)
+
             self.layout.add_widget(self.score_label)
             self.layout.add_widget(self.hi_label)
             self.layout.add_widget(self.yes_button)
             self.layout.add_widget(self.no_button)
+            self.layout.add_widget(self.exit_button)
         else:
-            #anotherGame
-            self.anotherGame_button = Button(text="another game")
+            self.anotherGame_button = Button(text="another game", on_press=self.anotherGame)
             self.menu_button = Button(text="Back to menu", on_press=self.change_to_menu)
-            # TODO: reset the game
+
             self.layout.add_widget(self.score_label)
             self.layout.add_widget(self.anotherGame_button)
             self.layout.add_widget(self.menu_button)
-
-    def change_to_menu(self, value):
-        self.manager.transition.direction = "up"
-        self.manager.current = "menu"
+            self.layout.add_widget(self.exit_button)
 
     def yes(self, value):
         self.layout.remove_widget(self.score_label)
         self.layout.remove_widget(self.hi_label)
         self.layout.remove_widget(self.yes_button)
         self.layout.remove_widget(self.no_button)
+        self.layout.remove_widget(self.exit_button)
 
         self.name_label = Label(text="Your name:")
         self.name_input = TextInput()
         self.highscore_button = Button(text="view scoreboard", on_press=self.change_to_scoreboard)
         self.yes_anotherGame_button = Button(text="another game", on_press=self.yes_anotherGame)
+        self.record_exit_button = Button(text="exit game", on_press=self.record_exit_game)
 
         self.layout.add_widget(self.name_label)
         self.layout.add_widget(self.name_input)
         self.layout.add_widget(self.highscore_button)
         self.layout.add_widget(self.yes_anotherGame_button)
+        self.layout.add_widget(self.record_exit_button)
+
+    def anotherGame(self, value):
+        self.layout.remove_widget(self.score_label)
+        self.layout.remove_widget(self.anotherGame_button)
+        self.layout.remove_widget(self.menu_button)
+        self.layout.remove_widget(self.exit_button)
+
+        self.layout.add_widget(self.win_label)
+        self.layout.add_widget(self.score_button)
+
+        self.diffi.reinitialize()
+        self.diffi.change_to_menu()
+        self.dismiss()
 
     def change_to_scoreboard(self, value):
-        with open("scores_local.txt", "a") as file:
-            string = "\n" + str(self.name_input.text) + " " + str(Global.current) + " " + str(self.scoreAchieved)
-            file.write(string)
-        ScoreBoard().reinit()
-        self.manager.transition.direction = "up"
-        self.manager.current = "scoreboard"
+        self.record_highscore()
+        #ScoreBoard().init()
+        self.dismiss()
+        self.diffi.manager.transition.direction = "up"
+        self.diffi.manager.current = "scoreboard"
+
+    def change_to_menu(self, value):
+        self.diffi.manager.transition.direction = "up"
+        self.diffi.manager.current = "menu"
+        self.diffi.reinitialize()
+        self.dismiss()
 
     def no(self, value):
-        self.no_anotherGame()
+        self.layout.remove_widget(self.score_label)
+        self.layout.remove_widget(self.hi_label)
+        self.layout.remove_widget(self.yes_button)
+        self.layout.remove_widget(self.no_button)
+        self.layout.remove_widget(self.exit_button)
+
+        self.no_anotherGame_button = Button(text="another game", on_press=self.no_anotherGame)
+        self.layout.add_widget(self.no_anotherGame_button)
+        self.layout.add_widget(self.exit_button)
 
     def yes_anotherGame(self, value):
         self.layout.remove_widget(self.name_label)
         self.layout.remove_widget(self.name_input)
         self.layout.remove_widget(self.highscore_button)
         self.layout.remove_widget(self.yes_anotherGame_button)
+        self.layout.remove_widget(self.record_exit_button)
+
         self.layout.add_widget(self.win_label)
         self.layout.add_widget(self.score_button)
 
-        #self.clear_widgets()
-        #self.init(self.diffi)
+        self.record_highscore()
         self.diffi.reinitialize()
+        self.diffi.change_to_gamemode()
         self.dismiss()
-        #App.get_running_app().root.ids.Easy.reinitialize() ###
-        #self.manager.transition.direction = "up"
-        #self.manager.current = "gamemode"
 
-    def no_anotherGame(self):
-        self.layout.remove_widget(self.score_label)
-        self.layout.remove_widget(self.hi_label)
-        self.layout.remove_widget(self.yes_button)
-        self.layout.remove_widget(self.no_button)
-        # TODO: reset the game
+    def no_anotherGame(self, value):
+        self.layout.remove_widget(self.no_anotherGame_button)
+        self.layout.remove_widget(self.exit_button)
+
+        self.layout.add_widget(self.win_label)
+        self.layout.add_widget(self.score_button)
+
+        self.diffi.reinitialize()
+        self.diffi.change_to_gamemode()
+        self.dismiss()
+
+    def record_highscore(self):
+        with open("scores_local.txt", "a") as file:
+            string = "\n" + str(self.name_input.text) + " " + str(Global.current) + " " + str(self.scoreAchieved)
+            file.write(string)
+
+    def record_exit_game(self, value):
+        self.record_highscore()
+        App.get_running_app().stop()
+        Window.close()
+
+    def exit_game(self, value):
+        App.get_running_app().stop()
+        Window.close()
 
 class Lose1(Screen):
     def __init__(self, **kwargs):
@@ -643,9 +664,7 @@ class Lose2(Screen):
         App.get_running_app().stop()
         Window.close()
 
-## do a popup window
 
 if __name__ == '__main__':
     MineSweep().run()
-
 
