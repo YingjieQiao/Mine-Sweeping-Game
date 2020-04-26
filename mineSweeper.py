@@ -10,12 +10,10 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.core.window import Window
 from kivy.uix.popup import Popup
 from random import randint
-import Global
 import time
 import math
+import Global
 
-##TODO: position and size
-##understand layouts
 
 
 class Grid():
@@ -34,7 +32,6 @@ class Grid():
         self.count_neighbors()
 
     def onPressed(self, instance, touch):
-        ## SM class the whole thing
         if self.button.collide_point(*touch.pos):
             if Global.first:
                 Global.start = time.time()
@@ -55,13 +52,12 @@ class Grid():
                         self.button.text = str(self.neighbors)
                 else:
                     self.button.text = "!"
-                    # more intuitive font and color and like "!!!"
                     self.difficulty.change_to_lose1()
             elif touch.button == "right":
                 if self.isFlagged == 0:
                     self.isFlagged = 1
                     self.button.text = "*"
-                    # more intuitive font and color and like "***"
+                    self.button.background_color=[42/255, 193/255, 213/255, 1]
                     Global.flagged += 1
                     if self.isMine == 1:
                         Global.effFlag += 1
@@ -71,17 +67,13 @@ class Grid():
                             self.difficulty.change_to_win()
                         else:
                             self.difficulty.change_to_lose2()
-                    # color change
                 elif self.isFlagged == 1:
                     self.isFlagged = 0
                     self.button.text = " "
+                    self.button.background_color = [1, 1, 1, 1]
                     Global.flagged -= 1
                     if self.isMine == 1:
                         Global.effFlag -= 1
-                    # color change
-                # self.color = (225,225,126,1)
-                # difference between background color and color attr
-                # why it fixed the white at top right color bug
 
     def count_neighbors(self):
         if self.isMine == 0:
@@ -97,7 +89,6 @@ class Grid():
         # gridObj is already confirmed to be 0 -- no mines in its surrounding
         for i in range(-1, 2):
             for j in range(-1, 2):
-                #if (0 <= gridObj.location[0] + i < self.difficulty.width) and (0 <= gridObj.location[1] + j < self.difficulty.height):
                 if (0 <= gridObj.location[0] + i < len(self.difficulty.field)) and (0 <= gridObj.location[1] + j < len(self.difficulty.field[0])):
                     check = self.difficulty.field[gridObj.location[0] + i][gridObj.location[1] + j]
                     if check.isClicked == 0 and check.neighbors == 0 and check.isMine == 0:
@@ -111,22 +102,16 @@ class MineSweep(App):
         scrm = ScreenManager()
 
         menu = Menu(name="menu")
-        scoreboard = ScoreBoard(name="scoreboard")   ### change scoreboad into a popup too lmfao
         gamemode = GameMode(name="gamemode")
         easy = Easy(name="easy")
         medium = Medium(name="medium")
         hard = Hard(name="hard")
-        lose1 = Lose1(name="lose1")
-        lose2 = Lose2(name="lose2")
 
         scrm.add_widget(menu)
         scrm.add_widget(gamemode)
         scrm.add_widget(easy)
         scrm.add_widget(medium)
         scrm.add_widget(hard)
-        scrm.add_widget(scoreboard)
-        scrm.add_widget(lose1)
-        scrm.add_widget(lose2)
 
         scrm.current = "menu"
         return scrm
@@ -137,14 +122,16 @@ class Menu(Screen):
         Screen.__init__(self, **kwargs)
 
         self.layout = GridLayout(cols=1)
-        self.start_button = Button(text="Start Game", on_press=self.change_to_gamemode)
-        self.scoreboard_button = Button(text="scoreboard", on_press=self.change_to_scoreboard)
-        # why here no paranthesis?? -- understnad how "on_press" works
-        self.quit_button = Button(text="Quit", on_press=self.quit_app)
+        title_text="[color=ff8000][size=64]MineSweeper!\n[/size][size=48]Crafted by Yingjie[/size][/color]"
+        self.title = Label(text=title_text, markup=True, valign="middle")
+        self.start_button = Button(text="Start Game", font_size=48, on_press=self.change_to_gamemode)
+        self.scoreboard_button = Button(text="Scoreboard", font_size=48, on_press=self.change_to_scoreboard)
+        self.exit_button = Button(text="Exit Game", font_size=48, on_press=self.exit_game)
 
+        self.layout.add_widget(self.title)
         self.layout.add_widget(self.start_button)
         self.layout.add_widget(self.scoreboard_button)
-        self.layout.add_widget(self.quit_button)
+        self.layout.add_widget(self.exit_button)
         self.add_widget(self.layout)
 
     def change_to_gamemode(self, value):
@@ -152,34 +139,37 @@ class Menu(Screen):
         self.manager.current = "gamemode"
 
     def change_to_scoreboard(self, value):
-        self.manager.transition.direction = "up"
-        self.manager.current = "scoreboard"
+        self.scrbd_popup = ScoreBoard(self)
+        self.scrbd_popup.open()
 
-    def quit_app(self, value):
+    def exit_game(self, value):
         App.get_running_app().stop()
         Window.close()
 
 
-class ScoreBoard(Screen):
-    def __init__(self, **kwargs):
-        Screen.__init__(self, **kwargs)
-        self.init()
-        ############################ The UI here has to be better lmao ########################################
+class ScoreBoard(Popup):
+    def __init__(self, obj, **kwargs):
+        # prepare interview about this passing obj here
+        Popup.__init__(self, **kwargs)
+        self.init(obj)
 
-    def init(self):
-        self.layout = GridLayout(cols=1)
-        self.scoreboard_label = Label(text="Score Board")
-        self.menu_button = Button(text="Back to Menu", on_press=self.change_to_menu)
-        self.refresh_button = Button(text="refresh scoreboard", on_press=self.refresh)
+    def init(self, obj):
+        self.layout = BoxLayout(orientation='vertical')
+        self.top_bar = BoxLayout(orientation='horizontal', size_hint_y=0.2)
+        self.bottom_bar = BoxLayout(orientation='horizontal', size_hint_y=0.2)
+        self.data_grid = GridLayout(cols=3)
+        self.title = "ScoreBoard"
+        self.obj = obj
 
-        self.layout.add_widget(self.scoreboard_label)
-        self.layout.add_widget(self.menu_button)
-        self.layout.add_widget(self.refresh_button)
+        self.scoreboard_label = Label(text="Scoreboard -- Hall of Fame", font_size=48, color=[213/255, 116/255, 42/255, 1])
+        self.menu_button = Button(text="Back to Menu", font_size=48, on_press=self.change_to_menu)
+        self.top_bar.add_widget(self.scoreboard_label)
+        self.layout.add_widget(self.top_bar)
+
         data = []
         with open("scores_local.txt") as file:
             lines = file.readlines()
             for line in lines:
-                # l0, l1, l2 = line.split()[0], line.split()[-2], line.split()[-1]
                 segments = line.split()
                 name = " "
                 mode, score = segments[-2], segments[-1]
@@ -188,36 +178,44 @@ class ScoreBoard(Screen):
                 elif len(segments) > 3:
                     name = name.join(segments[:-2])
                 else:
-                    name = "INPUT WAS EMPTY"
+                    name = "[SYSTEM]: INPUT WAS EMPTY"
                 data.append([name, mode, float(score)])
-        data.sort(key=lambda x: x[2], reverse=True)
+        data.sort(key=lambda x: x[2], reverse=True) ### explain
 
+        self.name = Label(text="[color=492ad5][b]Name[/b][/color]", markup=True)
+        self.mode = Label(text="[color=492ad5][b]Difficulty[/b][/color]", markup=True)
+        self.score = Label(text="[color=492ad5][b]Score[/b][/color]", markup=True)
+        self.data_grid.add_widget(self.name)
+        self.data_grid.add_widget(self.mode)
+        self.data_grid.add_widget(self.score)
         for line in data:
-            string = str(line[0]) + " " + str(line[1]) + " " + str(line[2])
-            self.score_label = Label(text=string)
-            self.layout.add_widget(self.score_label)
-
+            self.label1 = Label(text=str(line[0]))
+            self.label2 = Label(text=str(line[1]))
+            self.label3 = Label(text=str(line[2]))
+            self.data_grid.add_widget(self.label1)
+            self.data_grid.add_widget(self.label2)
+            self.data_grid.add_widget(self.label3)
+        self.layout.add_widget(self.data_grid)
+        self.bottom_bar.add_widget(self.menu_button)
+        self.layout.add_widget(self.bottom_bar)
         self.add_widget(self.layout)
 
-    def refresh(self, value):
-        self.clear_widgets()
-        self.init()
-
     def change_to_menu(self, value):
-        self.manager.transition.direction = "down"
-        self.manager.current = "menu"
+        self.obj.manager.transition.direction = "down"
+        self.obj.manager.current = "menu"
+        self.dismiss()
 
 
-class GameMode(Screen):   ## SM here!
+class GameMode(Screen):
     def __init__(self, **kwargs):
         Screen.__init__(self, **kwargs)
 
         self.layout = GridLayout(cols=1)
-        self.gamemode_label = Label(text="Select Difficulty")
-        self.easy_button = Button(text="Easy", on_press=self.change_to_easy)
-        self.medium_button = Button(text="Medium", on_press=self.change_to_medium)
-        self.hard_button = Button(text="Hard", on_press=self.change_to_hard)
-        self.menu_button = Button(text="Back to Menu", on_press=self.change_to_menu)
+        self.gamemode_label = Label(text="Select Difficulty", font_size=48, color=[213/255, 116/255, 42/255, 1])
+        self.easy_button = Button(text="Easy", font_size=48, on_press=self.change_to_easy)
+        self.medium_button = Button(text="Medium", font_size=48, on_press=self.change_to_medium)
+        self.hard_button = Button(text="Hard", font_size=48, on_press=self.change_to_hard)
+        self.menu_button = Button(text="Back to Menu", font_size=48, on_press=self.change_to_menu)
 
         self.layout.add_widget(self.gamemode_label)
         self.layout.add_widget(self.easy_button)
@@ -248,15 +246,30 @@ class Easy(Screen):
         Screen.__init__(self, **kwargs)
         self.width = 10
         self.height = 10
-        self.mines = 1
+        self.mines = 10
+        self.win_popup = Win(self)
+        self.lose1_popup = Lose1(self)
+        self.lose2_popup = Lose2(self)
+        self.init()
+
+    def init(self):
+        self.root_layout = BoxLayout(orientation="vertical")
         self.layout = GridLayout(cols=10, rows=10)
+        self.bottom_bar = BoxLayout(orientation="horizontal", size_hint_y=0.125)
+        self.change_to_menu_button = Button(text="Give up this game, back to menu", font_size=24,
+                                            background_color=[228/255, 201/255, 27/255, 1], on_press=self.change_to_menu)
         self.field = []
         self.init_grid()
-        self.win_popup = Win(self)
+
         for eachRow in self.field:
             for each in eachRow:
                 self.layout.add_widget(each.button)
-        self.add_widget(self.layout)
+        self.root_layout.add_widget(self.layout)
+
+        self.bottom_bar.add_widget(self.change_to_menu_button)
+        self.root_layout.add_widget(self.bottom_bar)
+
+        self.add_widget(self.root_layout)
 
     def reinitialize(self):
         self.clear_widgets()
@@ -264,14 +277,7 @@ class Easy(Screen):
         Global.flagged = 0
         Global.effFlag = 0
         Global.current = ""
-
-        self.field = []
-        self.layout = GridLayout(cols=10, rows=10)
-        self.init_grid()
-        for eachRow in self.field:
-            for each in eachRow:
-                self.layout.add_widget(each.button)
-        self.add_widget(self.layout)
+        self.init()
 
     def init_grid(self):
         for j in range(10):
@@ -292,6 +298,15 @@ class Easy(Screen):
             for j in range(10):
                 self.field[j][i].build(j, i)
 
+    def change_to_menu(self, value):
+        self.reinitialize()
+        self.manager.transition.direction = "down"
+        self.manager.current = "menu"
+
+    def change_to_menu_win(self):
+        self.manager.transition.direction = "down"
+        self.manager.current = "menu"
+
     def change_to_win(self):
         self.win_popup.open()
 
@@ -299,33 +314,42 @@ class Easy(Screen):
         self.manager.transition.direction = "up"
         self.manager.current = "gamemode"
 
-    def change_to_menu(self, value):
-        self.diffi.manager.transition.direction = "up"
-        self.diffi.manager.current = "menu"
-
     def change_to_lose1(self):
-        self.manager.transition.direction = "up"
-        self.manager.current = "lose1"
+        self.lose1_popup.open()
 
     def change_to_lose2(self):
-        self.manager.transition.direction = "up"
-        self.manager.current = "lose2"
+        self.lose2_popup.open()
+
 
 class Medium(Screen):
     def __init__(self, **kwargs):
         Screen.__init__(self, **kwargs)
-
         self.width = 18
         self.height = 18
-        self.mines = 1
-        self.layout = GridLayout(cols=self.height, rows=self.width)
+        self.mines = 32
+        self.win_popup = Win(self)
+        self.lose1_popup = Lose1(self)
+        self.lose2_popup = Lose2(self)
+        self.init()
+
+    def init(self):
+        self.root_layout = BoxLayout(orientation="vertical")
+        self.layout = GridLayout(cols=18, rows=18)
+        self.bottom_bar = BoxLayout(orientation="horizontal", size_hint_y=0.125)
+        self.change_to_menu_button = Button(text="Give up this game, back to menu", font_size=24,
+                                            background_color=[228/255, 201/255, 27/255, 1], on_press=self.change_to_menu)
         self.field = []
         self.init_grid()
-        self.win_popup = Win(self)
+
         for eachRow in self.field:
             for each in eachRow:
                 self.layout.add_widget(each.button)
-        self.add_widget(self.layout)
+        self.root_layout.add_widget(self.layout)
+
+        self.bottom_bar.add_widget(self.change_to_menu_button)
+        self.root_layout.add_widget(self.bottom_bar)
+
+        self.add_widget(self.root_layout)
 
     def reinitialize(self):
         self.clear_widgets()
@@ -333,14 +357,7 @@ class Medium(Screen):
         Global.flagged = 0
         Global.effFlag = 0
         Global.current = ""
-
-        self.field = []
-        self.layout = GridLayout(cols=18, rows=18)
-        self.init_grid()
-        for eachRow in self.field:
-            for each in eachRow:
-                self.layout.add_widget(each.button)
-        self.add_widget(self.layout)
+        self.init()
 
     def init_grid(self):
         for j in range(18):
@@ -361,6 +378,15 @@ class Medium(Screen):
             for j in range(18):
                 self.field[j][i].build(j, i)
 
+    def change_to_menu(self, value):
+        self.reinitialize()
+        self.manager.transition.direction = "down"
+        self.manager.current = "menu"
+
+    def change_to_menu_win(self):
+        self.manager.transition.direction = "down"
+        self.manager.current = "menu"
+
     def change_to_win(self):
         self.win_popup.open()
 
@@ -368,33 +394,43 @@ class Medium(Screen):
         self.manager.transition.direction = "up"
         self.manager.current = "gamemode"
 
-    def change_to_menu(self, value):
-        self.diffi.manager.transition.direction = "up"
-        self.diffi.manager.current = "menu"
-
     def change_to_lose1(self):
-        self.manager.transition.direction = "up"
-        self.manager.current = "lose1"
+        self.lose1_popup.open()
 
     def change_to_lose2(self):
-        self.manager.transition.direction = "up"
-        self.manager.current = "lose2"
+        self.lose2_popup.open()
+
 
 class Hard(Screen):
     def __init__(self, **kwargs):
         Screen.__init__(self, **kwargs)
-
         self.width = 24
         self.height = 24
         self.mines = 1
-        self.layout = GridLayout(cols=self.height, rows=self.width)
+        self.win_popup = Win(self)
+        self.lose1_popup = Lose1(self)
+        self.lose2_popup = Lose2(self)
+        self.init()
+
+    def init(self):
+        self.root_layout = BoxLayout(orientation="vertical")
+        self.layout = GridLayout(cols=24, rows=24)
+        self.bottom_bar = BoxLayout(orientation="horizontal", size_hint_y=0.125)
+        self.change_to_menu_button = Button(text="Give up this game, back to menu", font_size=24,
+                                            background_color=[228 / 255, 201 / 255, 27 / 255, 1],
+                                            on_press=self.change_to_menu)
         self.field = []
         self.init_grid()
-        self.win_popup = Win(self)
+
         for eachRow in self.field:
             for each in eachRow:
                 self.layout.add_widget(each.button)
-        self.add_widget(self.layout)
+        self.root_layout.add_widget(self.layout)
+
+        self.bottom_bar.add_widget(self.change_to_menu_button)
+        self.root_layout.add_widget(self.bottom_bar)
+
+        self.add_widget(self.root_layout)
 
     def reinitialize(self):
         self.clear_widgets()
@@ -402,14 +438,7 @@ class Hard(Screen):
         Global.flagged = 0
         Global.effFlag = 0
         Global.current = ""
-
-        self.field = []
-        self.layout = GridLayout(cols=24, rows=24)
-        self.init_grid()
-        for eachRow in self.field:
-            for each in eachRow:
-                self.layout.add_widget(each.button)
-        self.add_widget(self.layout)
+        self.init()
 
     def init_grid(self):
         for j in range(24):
@@ -430,6 +459,15 @@ class Hard(Screen):
             for j in range(24):
                 self.field[j][i].build(j, i)
 
+    def change_to_menu(self, value):
+        self.reinitialize()
+        self.manager.transition.direction = "down"
+        self.manager.current = "menu"
+
+    def change_to_menu_win(self):
+        self.manager.transition.direction = "down"
+        self.manager.current = "menu"
+
     def change_to_win(self):
         self.win_popup.open()
 
@@ -437,34 +475,25 @@ class Hard(Screen):
         self.manager.transition.direction = "up"
         self.manager.current = "gamemode"
 
-    def change_to_menu(self, value):
-        self.diffi.manager.transition.direction = "up"
-        self.diffi.manager.current = "menu"
-
     def change_to_lose1(self):
-        self.manager.transition.direction = "up"
-        self.manager.current = "lose1"
+        self.lose1_popup.open()
 
     def change_to_lose2(self):
-        self.manager.transition.direction = "up"
-        self.manager.current = "lose2"
+        self.lose2_popup.open()
 
-'''
-class HeaderLabel
-# for the name input part, bigger font
-# can also do similar thing for other parts when polishing the UI
-'''
 
 class Win(Popup):
     def __init__(self, diffi, **kwargs):
         Popup.__init__(self, **kwargs)
+        self.title = "Congratulations! You win!"
         self.init(diffi)
 
     def init(self, diffi):
         self.layout = GridLayout(cols=1)
-        self.win_label = Label(text="Congratulations! You win!")
-        self.score_button = Button(text="Click to continue", on_press=self.score)
-        self.exit_button = Button(text="exit game", on_press=self.exit_game)
+        self.win_label = Label(text="Congratulations! You win!", font_size=48, color=[213/255, 116/255, 42/255, 1])
+        self.score_button = Button(text="Click to continue", font_size=36, on_press=self.score)
+        self.hi_noNewScore = Label(text="Play again?", font_size=48, color=[213 / 255, 116 / 255, 42 / 255, 1])
+        self.exit_button = Button(text="exit game", font_size=36, on_press=self.exit_game)
 
         self.scoreAchieved = 0
         self.diffi = diffi
@@ -473,13 +502,12 @@ class Win(Popup):
         self.add_widget(self.layout)
 
     def score(self, value):
-        # you must add the "value" argument here lmfao
         self.layout.remove_widget(self.win_label)
         self.layout.remove_widget(self.score_button)
         scoreAchieved = 5000/(Global.end-Global.start)
         self.scoreAchieved = scoreAchieved
         string = "Your score is " + str(self.scoreAchieved) + " !"
-        self.score_label = Label(text=string)
+        self.score_label = Label(text=string,font_size=24, color=[213/255, 116/255, 42/255, 1])
 
         newHighScore = False
         highest = ["", "", 0]
@@ -496,9 +524,7 @@ class Win(Popup):
                 elif len(segments) > 3:
                     name = name.join(segments[:-2])
                 else:
-                    name = "INPUT WAS EMPTY"
-                print(highest)
-                print(name, mode, score)
+                    name = "[SYSTEM]: INPUT WAS EMPTY"
                 if first:
                     if mode == Global.current:
                         highest = [name, mode, score]
@@ -512,9 +538,10 @@ class Win(Popup):
             newHighScore = True
 
         if newHighScore == True:
-            self.hi_label = Label(text="You have reached a new high score in this difficulty! Would you like to put your name onto the scoreboard?")
-            self.yes_button = Button(text="Yes!", on_press=self.yes)
-            self.no_button = Button(text="Nah...", on_press=self.no)
+            self.hi_label = Label(text="You have reached a new high score in this difficulty!\n"
+                                       "Would you like to put your name onto the scoreboard?",  font_size=24, color=[213/255, 116/255, 42/255, 1])
+            self.yes_button = Button(text="Yes!", font_size=36, on_press=self.yes)
+            self.no_button = Button(text="Nah...", font_size=36, on_press=self.no)
 
             self.layout.add_widget(self.score_label)
             self.layout.add_widget(self.hi_label)
@@ -522,10 +549,11 @@ class Win(Popup):
             self.layout.add_widget(self.no_button)
             self.layout.add_widget(self.exit_button)
         else:
-            self.anotherGame_button = Button(text="another game", on_press=self.anotherGame)
-            self.menu_button = Button(text="Back to menu", on_press=self.change_to_menu)
+            self.anotherGame_button = Button(text="Yes! Another game!", font_size=36, on_press=self.anotherGame)
+            self.menu_button = Button(text="Nah...Back to menu", font_size=36, on_press=self.change_to_menu)
 
             self.layout.add_widget(self.score_label)
+            self.layout.add_widget(self.hi_noNewScore)
             self.layout.add_widget(self.anotherGame_button)
             self.layout.add_widget(self.menu_button)
             self.layout.add_widget(self.exit_button)
@@ -537,43 +565,15 @@ class Win(Popup):
         self.layout.remove_widget(self.no_button)
         self.layout.remove_widget(self.exit_button)
 
-        self.name_label = Label(text="Your name:")
+        self.name_label = Label(text="Your name:", font_size=24, color=[213/255, 116/255, 42/255, 1])
         self.name_input = TextInput()
-        self.highscore_button = Button(text="view scoreboard", on_press=self.change_to_scoreboard)
-        self.yes_anotherGame_button = Button(text="another game", on_press=self.yes_anotherGame)
-        self.record_exit_button = Button(text="exit game", on_press=self.record_exit_game)
+        self.yes_anotherGame_button = Button(text="another game", font_size=36, on_press=self.yes_anotherGame)
+        self.record_exit_button = Button(text="exit game", font_size=36, on_press=self.record_exit_game)
 
         self.layout.add_widget(self.name_label)
         self.layout.add_widget(self.name_input)
-        self.layout.add_widget(self.highscore_button)
         self.layout.add_widget(self.yes_anotherGame_button)
         self.layout.add_widget(self.record_exit_button)
-
-    def anotherGame(self, value):
-        self.layout.remove_widget(self.score_label)
-        self.layout.remove_widget(self.anotherGame_button)
-        self.layout.remove_widget(self.menu_button)
-        self.layout.remove_widget(self.exit_button)
-
-        self.layout.add_widget(self.win_label)
-        self.layout.add_widget(self.score_button)
-
-        self.diffi.reinitialize()
-        self.diffi.change_to_menu()
-        self.dismiss()
-
-    def change_to_scoreboard(self, value):
-        self.record_highscore()
-        #ScoreBoard().init()
-        self.dismiss()
-        self.diffi.manager.transition.direction = "up"
-        self.diffi.manager.current = "scoreboard"
-
-    def change_to_menu(self, value):
-        self.diffi.manager.transition.direction = "up"
-        self.diffi.manager.current = "menu"
-        self.diffi.reinitialize()
-        self.dismiss()
 
     def no(self, value):
         self.layout.remove_widget(self.score_label)
@@ -582,14 +582,29 @@ class Win(Popup):
         self.layout.remove_widget(self.no_button)
         self.layout.remove_widget(self.exit_button)
 
-        self.no_anotherGame_button = Button(text="another game", on_press=self.no_anotherGame)
+        self.no_anotherGame_button = Button(text="another game", font_size=36, on_press=self.no_anotherGame)
+        self.layout.add_widget(self.hi_noNewScore)
         self.layout.add_widget(self.no_anotherGame_button)
         self.layout.add_widget(self.exit_button)
+
+
+    def anotherGame(self, value):
+        self.layout.remove_widget(self.score_label)
+        self.layout.remove_widget(self.hi_noNewScore)
+        self.layout.remove_widget(self.anotherGame_button)
+        self.layout.remove_widget(self.menu_button)
+        self.layout.remove_widget(self.exit_button)
+
+        self.layout.add_widget(self.win_label)
+        self.layout.add_widget(self.score_button)
+
+        self.diffi.reinitialize()
+        self.diffi.change_to_menu_win()
+        self.dismiss()
 
     def yes_anotherGame(self, value):
         self.layout.remove_widget(self.name_label)
         self.layout.remove_widget(self.name_input)
-        self.layout.remove_widget(self.highscore_button)
         self.layout.remove_widget(self.yes_anotherGame_button)
         self.layout.remove_widget(self.record_exit_button)
 
@@ -602,6 +617,7 @@ class Win(Popup):
         self.dismiss()
 
     def no_anotherGame(self, value):
+        self.layout.remove_widget(self.hi_noNewScore)
         self.layout.remove_widget(self.no_anotherGame_button)
         self.layout.remove_widget(self.exit_button)
 
@@ -610,6 +626,12 @@ class Win(Popup):
 
         self.diffi.reinitialize()
         self.diffi.change_to_gamemode()
+        self.dismiss()
+
+    def change_to_menu(self, value):
+        self.diffi.manager.transition.direction = "up"
+        self.diffi.manager.current = "menu"
+        self.diffi.reinitialize()
         self.dismiss()
 
     def record_highscore(self):
@@ -626,39 +648,62 @@ class Win(Popup):
         App.get_running_app().stop()
         Window.close()
 
-class Lose1(Screen):
-    def __init__(self, **kwargs):
-        Screen.__init__(self, **kwargs)
-        self.layout = GridLayout(cols=1)
+class Lose1(Popup):
+    def __init__(self, diffi, **kwargs):
+        Popup.__init__(self, **kwargs)
+        self.title = "Awww, wish you have better luck next time..."
+        self.init(diffi)
 
-        self.lose_label1 = Label(text="You clicked on a mine... :(")
-        self.lose_label2 = Label(text="Good luck next time!")
-        self.exit_button = Button(text="exit game", on_press=self.exit_game)
+    def init(self, diffi):
+        self.layout = GridLayout(cols=1)
+        self.diffi = diffi
+        self.lose_label1 = Label(text="You clicked on a mine... :(", font_size=24, color=[213/255, 116/255, 42/255, 1])
+        self.lose_label2 = Label(text="Good luck next time!", font_size=24, color=[213/255, 116/255, 42/255, 1])
+        self.anotherGame_button = Button(text="another game", font_size=36, on_press=self.anotherGame)
+        self.exit_button = Button(text="exit game", font_size=36, on_press=self.exit_game)
 
         self.layout.add_widget(self.lose_label1)
         self.layout.add_widget(self.lose_label2)
+        self.layout.add_widget(self.anotherGame_button)
         self.layout.add_widget(self.exit_button)
 
         self.add_widget(self.layout)
+
+    def anotherGame(self, value):
+        self.diffi.reinitialize()
+        self.diffi.change_to_gamemode()
+        self.dismiss()
 
     def exit_game(self, value):
         App.get_running_app().stop()
         Window.close()
 
-class Lose2(Screen):
-    def __init__(self, **kwargs):
-        Screen.__init__(self, **kwargs)
-        self.layout = GridLayout(cols=1)
+class Lose2(Popup):
+    def __init__(self, diffi, **kwargs):
+        Popup.__init__(self, **kwargs)
+        self.title = "Awww, wish you have better luck next time..."
+        self.init(diffi)
 
-        self.lose_label1 = Label(text="You misflagged a safe grid, and you didn't find out in the end... :(")
-        self.lose_label2 = Label(text="Good luck next time!")
-        self.exit_button = Button(text="exit game", on_press=self.exit_game)
+    def init(self, diffi):
+        self.layout = GridLayout(cols=1)
+        self.diffi = diffi
+        self.lose_label1 = Label(text="You misflagged a safe grid, and you didn't find out in the end... :(",
+                                 font_size=24, color=[213/255, 116/255, 42/255, 1])
+        self.lose_label2 = Label(text="Good luck next time!", font_size=24, color=[213/255, 116/255, 42/255, 1])
+        self.anotherGame_button = Button(text="another game", font_size=36, on_press=self.anotherGame)
+        self.exit_button = Button(text="exit game", font_size=36, on_press=self.exit_game)
 
         self.layout.add_widget(self.lose_label1)
         self.layout.add_widget(self.lose_label2)
+        self.layout.add_widget(self.anotherGame_button)
         self.layout.add_widget(self.exit_button)
 
         self.add_widget(self.layout)
+
+    def anotherGame(self, value):
+        self.diffi.reinitialize()
+        self.diffi.change_to_gamemode()
+        self.dismiss()
 
     def exit_game(self, value):
         App.get_running_app().stop()

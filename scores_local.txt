@@ -5,4 +5,8 @@ eeeeeeer medium 0
  medium 2
 wafsafasdavfgawgvawsfafwsafafawfawsfafafafafaafafafafafafafafafafafafafafafafa medium 4
 awwwww medium 3124.5899924714313
-asd hard 1553.2571188939182
+asd hard 0
+33 hard 4199.78556011306
+NA easy 1
+NA medium 1
+NA hard 1
