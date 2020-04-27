@@ -22,7 +22,6 @@ hassle-free page-switching, and many more.
 Your goal is to explore the field with mines underlying (by using left click)
 and flag out all the grids that contain mines (by using right click).
 
-Here is a video demo of my game: TOCOME
 
 ![Game Board (Medium Difficulty)](./assets/gameboard.png)
 
