@@ -55,7 +55,7 @@ So think twice and flag cautiously!
 
 Of course, if you click on a mine, you also lose.
 
-### Description of Code
+## Description of Code
 
 * ### Schematics
 
