@@ -1,12 +1,6 @@
-testingtesting easy 0
-harrrrrd hard 10
-yingjie testing easy 105.76459592647302
-eeeeeeer medium 0
- medium 2
-wafsafasdavfgawgvawsfafwsafafawfawsfafafafafaafafafafafafafafafafafafafafafafa medium 4
-awwwww medium 3124.5899924714313
-asd hard 0
-33 hard 4199.78556011306
+yingjie testing easy 10
+testing medium 40.14725614105
+kk hard 5
 NA easy 1
 NA medium 1
 NA hard 1

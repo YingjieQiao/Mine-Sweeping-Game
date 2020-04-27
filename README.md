@@ -1,25 +1,14 @@
 # Mine-Sweeping-Game
 
-TODO:
-
-final check of the functionality of the code with the reference of the README.md and the schematics diagram.
-
-record a good video with voiceover. SHOW ALL FEATURES!
-
-Win at easy -- highscore, scoreboard -- 
-easy all flag -- easy bomb -- 2 easy show resetting function
--- hard give up
--- easy not highscore, show the rest of the screens
--- easy highscores by modify txt (show this too) and not record
-
-Do it slowly, make every screen enough time to see thru
-
-Show the schematics in the video
 
 
 ### 10.009 Digital World Final Assignment
 
 ### Author: Qiao Yingjie, 1004514
+
+*In case you can't view the photos in the readme.md properly,
+you can read it on my GitHub repository:
+https://github.com/YingjieQiao/Mine-Sweeping-Game*
 
 *Please refer to the **"mineSweeper"** branch for the final version (if you are viewing on Github)*
 
@@ -33,11 +22,18 @@ hassle-free page-switching, and many more.
 Your goal is to explore the field with mines underlying (by using left click)
 and flag out all the grids that contain mines (by using right click).
 
-You can also find out more about this game from [this wikipedia page](https://bit.ly/3cOhUQ0).
+Here is a video demo of my game: TOCOME
 
 ![Game Board (Medium Difficulty)](./assets/gameboard.png)
 
 **In case you can't view the screenshot of the game, you can find it in "./assets/gameboard.png"**
+
+You can also find out more about this game from [this wikipedia page](https://bit.ly/3cOhUQ0).
+
+## Dependicies
+
+- Kivy
+
 
 ## How to play
 
@@ -63,6 +59,8 @@ Of course, if you click on a mine, you also lose.
 ### Description of Code
 
 * ### Schematics
+
+A video demontration of the structure of the code: https://www.youtube.com/watch?v=nXOdyBBEVR8.
 
 The workflow of my code is shown by the schematics diagram below:
 

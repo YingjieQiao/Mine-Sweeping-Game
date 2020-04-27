@@ -172,14 +172,17 @@ class ScoreBoard(Popup):
             for line in lines:
                 segments = line.split()
                 name = " "
-                mode, score = segments[-2], segments[-1]
-                if len(segments) == 3:
-                    name = segments[0]
-                elif len(segments) > 3:
-                    name = name.join(segments[:-2])
+                if len(segments) >= 2:
+                    mode, score = segments[-2], segments[-1]
+                    if len(segments) == 3:
+                        name = segments[0]
+                    elif len(segments) > 3:
+                        name = name.join(segments[:-2])
+                    else:
+                        name = "[SYSTEM]: INPUT WAS EMPTY"
+                    data.append([name, mode, float(score)])
                 else:
-                    name = "[SYSTEM]: INPUT WAS EMPTY"
-                data.append([name, mode, float(score)])
+                    pass
         data.sort(key=lambda x: x[2], reverse=True) ### explain
 
         self.name = Label(text="[color=492ad5][b]Name[/b][/color]", markup=True)
@@ -246,7 +249,7 @@ class Easy(Screen):
         Screen.__init__(self, **kwargs)
         self.width = 10
         self.height = 10
-        self.mines = 10
+        self.mines = 2
         self.win_popup = Win(self)
         self.lose1_popup = Lose1(self)
         self.lose2_popup = Lose2(self)
@@ -406,7 +409,7 @@ class Hard(Screen):
         Screen.__init__(self, **kwargs)
         self.width = 24
         self.height = 24
-        self.mines = 1
+        self.mines = 99
         self.win_popup = Win(self)
         self.lose1_popup = Lose1(self)
         self.lose2_popup = Lose2(self)
