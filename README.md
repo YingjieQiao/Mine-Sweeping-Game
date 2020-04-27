@@ -31,6 +31,8 @@ You can also find out more about this game from [this wikipedia page](https://bi
 
 ## Dependicies
 
+- Python 3.7.6
+
 - Kivy
 
 
