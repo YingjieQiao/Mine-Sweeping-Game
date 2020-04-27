@@ -249,7 +249,7 @@ class Easy(Screen):
         Screen.__init__(self, **kwargs)
         self.width = 10
         self.height = 10
-        self.mines = 2
+        self.mines = 10
         self.win_popup = Win(self)
         self.lose1_popup = Lose1(self)
         self.lose2_popup = Lose2(self)

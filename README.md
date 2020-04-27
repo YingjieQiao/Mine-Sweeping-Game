@@ -1,7 +1,5 @@
 # Mine-Sweeping-Game
 
-
-
 ### 10.009 Digital World Final Assignment
 
 ### Author: Qiao Yingjie, 1004514
@@ -16,8 +14,8 @@ https://github.com/YingjieQiao/Mine-Sweeping-Game*
 ## Introduction
 
 This is a classical MineSweeper game written in Python with Kivy GUI framework, 
-designed to be a fully functional game app with comprehensive game modes, scoring system, 
-hassle-free page-switching, and many more.
+designed to be a fully functional game app with 3 different game modes, scoring system, 
+convenient page-switching, and many more.
 
 Your goal is to explore the field with mines underlying (by using left click)
 and flag out all the grids that contain mines (by using right click).
@@ -29,7 +27,7 @@ and flag out all the grids that contain mines (by using right click).
 
 You can also find out more about this game from [this wikipedia page](https://bit.ly/3cOhUQ0).
 
-## Dependicies
+## Dependencies
 
 - Python 3.7.6
 
@@ -219,9 +217,21 @@ achieved from file `score_local.txt`.
     - layout
     
         The root layout of the `Scoreboard()` popup window.
+        
+    - name, mode, score
+    
+        `Label` objects sed to display text using markdown syntax.
+        
+    - label1, label2, label3
+    
+        `Label` objects used to add text into the `GridLayout`.
     
     
 - **Methods**
+
+    - init()
+    
+        Used to initialize the screen.
 
     - change_to_menu()
     
@@ -345,27 +355,32 @@ different `height`, `width`, `mines` attributes.
     
     - init_grid()
     
-     Create a 2D list with `Grid()` objects for the game board.
+        Create a 2D list with `Grid()` objects for the game board.
     
     - change_to_menu()
     
-        Used to switch back to menu **from the game**. `reinitalize()` is called.
+        Callback function binded to `change_to_menu_button`. Used to switch back to menu **from the game**. 
     
     - change_to_menu_win()
     
-        Used to switch back to menu **from the win popup window**. `reinitalize()` is not called.
+        Used to switch back to menu **from the win popup window**. Called from `Win()` popup window.
     
     - change_to_win()
     
-        Used to switch to `Win()` popup window.
+        Used to switch to `Win()` popup window. Called in the `Grid()` object.
     
     - change_to_lose1()
     
-        Switch to `Lose1()` popup window when triggering the first losing condition: clicking on a mine.
+        Switch to `Lose1()` popup window when triggering the first losing condition: clicking on a mine. Called in the `Grid()` object.
     
     - change_to_lose2()
     
         Switch to `Lose1()` popup window when triggering the second losing condition: flagged a safe grid and never unflag before using up all flags.
+        Called in the `Grid()` object.
+        
+    - change_to_gamemode()
+    
+        Switch to `Gamemode()` screen. Called from `Win()` popup window.
 
 
 ***class* Win()**
@@ -392,9 +407,13 @@ The popup window that inherited the `Popup` class of kivy.
         
         The root layout
     
-    - win_label, hi_label, hi_noNewScore
+    - win_label, hi_label, hi_noNewScore, name_label
     
         `Label` object used to display text on the screen
+        
+    - name_input
+    
+        `TextInput` object that takes in user's input.
     
     - score_button
     
@@ -403,6 +422,10 @@ The popup window that inherited the `Popup` class of kivy.
     - exit_button
         
         `Button` object used to exit the game app.
+        
+    - record_exit_button
+    
+        `Button` object used to append the user's input to local .txt file.
     
     - score_label
     
@@ -457,12 +480,15 @@ The popup window that inherited the `Popup` class of kivy.
         Callback function of `no_anotherGame_button`. Used to start another game. 
         
     - record_highscore()
+    
         Append the name + difficulty + score to the `score_local.txt` file.
         
     - record_exit_game()
+    
         Append the name + difficulty + score to the `score_local.txt` file and exit the game app.
         
     - exit_game()
+    ``
         Callback function of `exit_button`. Exit the game app.
 
 ***class* Lose1()**, ***class* Lose2()**

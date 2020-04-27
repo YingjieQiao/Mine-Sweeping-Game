@@ -1,6 +1,6 @@
 yingjie testing easy 10
 testing medium 40.14725614105
 kk hard 5
-NA easy 1
-NA medium 1
-NA hard 1
+NA easy 0
+NA medium 0
+NA hard 0
