@@ -36,6 +36,8 @@ You can also find out more about this game from [this wikipedia page](https://bi
 
 ## How to play
 
+Use `cd` to go to the directory of the file. Run the game file using `python3 mineSweeper.py`.
+
 In my MineSweeper game, you can get to choose 3 difficulty levels:
 
 * easy: 10x10 grid field with 10 mines

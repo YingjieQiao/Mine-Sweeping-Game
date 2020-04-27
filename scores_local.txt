@@ -4,3 +4,4 @@ kk hard 5
 NA easy 0
 NA medium 0
 NA hard 0
+yingjie easy 101.23568434101213
